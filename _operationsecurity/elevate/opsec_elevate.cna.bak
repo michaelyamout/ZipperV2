@@ -1,0 +1,63 @@
+#	ALIAS:	ELEVATE
+
+global('%opsec_status');
+
+if (%opsec_status['elevate'] eq "DISABLED") {
+
+	alias elevate {
+			# Check for Number of Arguements
+			if (size(@_) > 1) {
+				berror($1, "elevate: Too many arguments (NOTE: Command is DISABLED!)");
+				beacon_command_detail("elevate");
+				return;
+			}
+
+			# Task
+			try {
+				# Beginning Task
+				berror($1, "elevate: DISABLED due to OPSEC Concerns.");
+				
+				# Log Tasking to Event Log.
+				elog("\c4[!] Operator '" . mynick() . "' attempted to run 'elevate' on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")\o");
+				
+				# Print Information to Script Console.
+				println(
+					"\nPRINTED INFORMATION: ELEVATE => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+					. "\n\t[!] Operator '" . mynick() . "' Attempted to Run 'elevate', which is DISABLED: Due to OPSEC Concerns."
+				);
+			}
+			catch $exception {
+				
+				#Print Error to Script Console.
+				println(
+					"\nERROR INFORMATION: ELEVATE => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+					. "\elevate: " . $exception
+				);
+				
+				# Print Error and Return.
+				berror($1, "elevate: " . $exception);
+				return;
+			}
+		}
+
+	#	ALIAS REGISTER: ELEVATE
+	beacon_command_register(
+		"elevate",
+		"\c6[!] DISABLED: Due to OPSEC Concerns\o",
+		"Synopsis: elevate:\t[!] DISABLED: Due to OPSEC Concerns."
+	);
+}
+
+else if (%opsec_status['elevate'] eq "ENABLED") {
+	# Log Tasking to Event Log.
+	println("[!] Operator " . mynick() . " ENABLED OPSEC Command: elevate\o");
+	
+	alias_clear("elevate");
+	
+	#	ALIAS REGISTER: BLOCKDLLS
+	beacon_command_register(
+		"elevate",
+		"",
+		""
+	);
+}

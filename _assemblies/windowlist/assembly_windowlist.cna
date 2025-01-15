@@ -1,0 +1,66 @@
+#	ALIAS:	WINDOWLIST
+
+alias("assembly windowlist", {
+
+		# Check for Number of Arguements
+		if (size(@_) > 2) {
+			berror($1, "windowlist: Too many arguments");
+			beacon_command_detail("assembly windowlist");
+			return;
+		}
+		
+		# Task
+		try {
+			
+			# Print Information to Beacon Console.
+			binput($1, "[ Retrieving WindowList Information ]");
+			
+			# Beginning Task
+			btask($1, "Retrieving WindowList Information (T000)", "T000");
+			
+			# Log Tasking to Event Log.
+			elog("\cC[+] Retrieving WindowList Information on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")");
+			
+			# Print Information to Script Console.
+			println(
+				"\nPRINTED INFORMATION: WINDOWLIST => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\nRetrieving WindowList Information."
+			);
+			
+			# Print Results to Beacon Console.
+			if (-is64 $1) {
+				if ("x86" !isin beacon_info($1, "barch")) {
+					bexecute_assembly($1, script_resource("_assemblies/windowlist/window_list_x64_2.0.50727.exe"), $null);
+				}
+				else {
+					bexecute_assembly($1, script_resource("_assemblies/windowlist/window_list_x86_2.0.50727.exe"), $null);
+				}
+				
+			}
+			else {
+				bexecute_assembly($1, script_resource("_assemblies/windowlist/window_list_x86_2.0.50727.exe"), $null);
+			}
+			# Task Complete
+			
+		}
+		catch $exception {
+			
+			#Print Error to Script Console.
+			println(
+				"\nERROR INFORMATION: WINDOWLIST => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\nWINDOWLIST: " . $exception
+			);
+			
+			# Print Error and Return.
+			berror($1, "WINDOWLIST: " . $exception);
+			return;
+		}
+	}
+);
+
+#	ALIAS REGISTER: WINDOWLIST
+beacon_command_register(
+	"assembly windowlist",
+	"\cD" . "[*] .NET \(2.0\): Retrieves localsystem's session windows" . "\o",
+	"Synopsis: windowlist\n\nRetrieves localsystem's session windows."
+ );

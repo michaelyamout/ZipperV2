@@ -1,0 +1,63 @@
+#	ALIAS:	SPUNNEL
+
+global('%opsec_status');
+
+if (%opsec_status['spunnel'] eq "DISABLED") {
+
+	alias spunnel {
+			# Check for Number of Arguements
+			if (size(@_) > 1) {
+				berror($1, "spunnel: Too many arguments (NOTE: Command is DISABLED!)");
+				beacon_command_detail("spunnel");
+				return;
+			}
+
+			# Task
+			try {
+				# Beginning Task
+				berror($1, "spunnel: DISABLED due to OPSEC Concerns.");
+				
+				# Log Tasking to Event Log.
+				elog("\c4[!] Operator '" . mynick() . "' attempted to run 'spunnel' on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")\o");
+				
+				# Print Information to Script Console.
+				println(
+					"\nPRINTED INFORMATION: SPUNNEL => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+					. "\n\t[!] Operator '" . mynick() . "' Attempted to Run 'spunnel', which is DISABLED: Due to OPSEC Concerns."
+				);
+			}
+			catch $exception {
+				
+				#Print Error to Script Console.
+				println(
+					"\nERROR INFORMATION: SPUNNEL => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+					. "\spunnel: " . $exception
+				);
+				
+				# Print Error and Return.
+				berror($1, "spunnel: " . $exception);
+				return;
+			}
+		}
+
+	#	ALIAS REGISTER: SPUNNEL
+	beacon_command_register(
+		"spunnel",
+		"\c6[!] DISABLED: Due to OPSEC Concerns\o",
+		"Synopsis: spunnel:\t[!] DISABLED: Due to OPSEC Concerns."
+	);
+}
+
+else if (%opsec_status['spunnel'] eq "ENABLED") {
+	# Log Tasking to Event Log.
+	println("[!] Operator " . mynick() . " ENABLED OPSEC Command: spunnel\o");
+	
+	alias_clear("spunnel");
+	
+	#	ALIAS REGISTER: BLOCKDLLS
+	beacon_command_register(
+		"spunnel",
+		"Spawn and tunnel an agent via rportfwd",
+		"Use: spunnel [x86|x64] [host] [port] [/path/to/agent.bin]\n\nThis is the spawn and tunnel command. Spawn an agent and create a reverse \nport forward tunnel to its controller."
+	);
+}

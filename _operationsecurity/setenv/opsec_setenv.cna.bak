@@ -1,0 +1,63 @@
+#	ALIAS:	SETENV
+
+global('%opsec_status');
+
+if (%opsec_status['setenv'] eq "DISABLED") {
+
+	alias setenv {
+			# Check for Number of Arguements
+			if (size(@_) > 1) {
+				berror($1, "setenv: Too many arguments (NOTE: Command is DISABLED!)");
+				beacon_command_detail("setenv");
+				return;
+			}
+
+			# Task
+			try {
+				# Beginning Task
+				berror($1, "setenv: DISABLED due to OPSEC Concerns.");
+				
+				# Log Tasking to Event Log.
+				elog("\c4[!] Operator '" . mynick() . "' attempted to run 'setenv' on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")\o");
+				
+				# Print Information to Script Console.
+				println(
+					"\nPRINTED INFORMATION: SETENV => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+					. "\n\t[!] Operator '" . mynick() . "' Attempted to Run 'setenv', which is DISABLED: Due to OPSEC Concerns."
+				);
+			}
+			catch $exception {
+				
+				#Print Error to Script Console.
+				println(
+					"\nERROR INFORMATION: SETENV => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+					. "\setenv: " . $exception
+				);
+				
+				# Print Error and Return.
+				berror($1, "setenv: " . $exception);
+				return;
+			}
+		}
+
+	#	ALIAS REGISTER: SETENV
+	beacon_command_register(
+		"setenv",
+		"\c6[!] DISABLED: Due to OPSEC Concerns\o",
+		"Synopsis: setenv:\t[!] DISABLED: Due to OPSEC Concerns."
+	);
+}
+
+else if (%opsec_status['setenv'] eq "ENABLED") {
+	# Log Tasking to Event Log.
+	println("[!] Operator " . mynick() . " ENABLED OPSEC Command: setenv\o");
+	
+	alias_clear("setenv");
+	
+	#	ALIAS REGISTER: BLOCKDLLS
+	beacon_command_register(
+		"setenv",
+		"",
+		""
+	);
+}

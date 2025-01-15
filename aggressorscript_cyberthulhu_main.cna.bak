@@ -1,0 +1,146 @@
+#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+# COBALTSTRIKE CLIENT AGGRESSOR SCRIPTS										 					#
+#	VESION:	0.0.0												 								#
+#	STATUS:	*NEW* Initial Draft																	#
+#	TO-DO:	*NEW*												 								#
+#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+# AUTHOR: CyberThulhu22												 							#
+# 2023 Jesse Leverett												 							#
+#																 								#
+# Loads various other CNA Scripts stored in subfolders				 							#
+#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+#	ADD ADDITIONAL AGGRESSOR SCRIPTS									 						#
+#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+#	[-]	Tophat CNA		:	Alters certain actions/events on Cobalt Strike (Covers for you)	 	#
+#	[-]	Monocle CNA		:	Watches for new Implant, when no one is logged on (Watchful Eye)	#
+#	[-]	WalkingCane CNA	:	Performs certain Automation to Cobalt Strike (Like a crutch) 		#
+#	[-]	FancySuit		:	Alters the "Appearance" of Cobalt Strike (Like wearing a suit)		#
+#	[-]	OPSEC Safe		:	Protects the User from doing something stupid (like getsystem)		#
+#	[-]	.NET CNA		:	Scripts ran using dotnet assemblies. (Uses Spawnto's)				#
+#	[-]	BOF CNA			:	Scripts ran using the inline_execute.	 							#
+#	[-] Alias CNA		:	Scripts ran using built-ins or adding extended functionality.		#
+#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+
+#include(script_resource("_bofs/aggressorscript_cyberthulhu_bof.cna" ));
+include(script_resource("_alias/aggressorscript_cyberthulhu_alias.cna"));
+include(script_resource("_tophat/aggressorscript_cyberthulhu_tophat.cna"));
+include(script_resource("_monocle/aggressorscript_cyberthulhu_monocle.cna"));
+include(script_resource("_fancysuit/aggressorscript_cyberthulhu_fancysuit.cna"));
+include(script_resource("_assemblies/aggressorscript_cyberthulhu_assemblies.cna"));
+include(script_resource("_operationsecurity/aggressorscript_cyberthulhu_opsec.cna"));
+#include(script_resource("_walkingcane/aggressorscript_cyberthulhu_walkingcane.cna" ));
+
+alias("a", {
+	local('@array');
+	$bid = @_[0];
+	$acmd = @_[1];
+	foreach $x (sublist(@_,2)){
+		push(@array, "\" $+ $x $+ \"");
+	}
+	$aargs = join(" ", @array);
+	if ($aargs !eq "" || $aargs !eq $null) {
+		fireAlias($1, "assembly $2", $aargs);
+	}
+	else {
+		fireAlias($1, "assembly $2");
+	}
+});
+
+alias("assembly", {
+	local('@array');
+	$bid = @_[0];
+	$acmd = @_[1];
+	foreach $x (sublist(@_,2)){
+		push(@array, "\" $+ $x $+ \"");
+	}
+	$aargs = join(" ", @array);
+	if ($aargs !eq "" || $aargs !eq $null) {
+		fireAlias($1, "assembly $2", $aargs);
+	}
+	else {
+		fireAlias($1, "assembly $2");
+	}
+});
+
+alias("b", {
+	local('@array');
+	$bid = @_[0];
+	$acmd = @_[1];
+	foreach $x (sublist(@_,2)){
+		push(@array, "\" $+ $x $+ \"");
+	}
+	$aargs = join(" ", @array);
+	if ($aargs !eq "" || $aargs !eq $null) {
+		fireAlias($1, "bof $2", $aargs);
+	}
+	else {
+		fireAlias($1, "bof $2");
+	}
+});
+
+alias("bof", {
+	local('@array');
+	$bid = @_[0];
+	$acmd = @_[1];
+	foreach $x (sublist(@_,2)){
+		push(@array, "\" $+ $x $+ \"");
+	}
+	$aargs = join(" ", @array);
+	if ($aargs !eq "" || $aargs !eq $null) {
+		fireAlias($1, "bof $2", $aargs);
+	}
+	else {
+		fireAlias($1, "bof $2");
+	}
+});
+
+alias("p", {
+	local('@array');
+	$bid = @_[0];
+	$acmd = @_[1];
+	foreach $x (sublist(@_,2)){
+		push(@array, "\" $+ $x $+ \"");
+	}
+	$aargs = join(" ", @array);
+	if ($aargs !eq "" || $aargs !eq $null) {
+		fireAlias($1, "pwsh $2", $aargs);
+	}
+	else {
+		fireAlias($1, "pwsh $2");
+	}
+});
+
+alias("pwsh", {
+	local('@array');
+	$bid = @_[0];
+	$acmd = @_[1];
+	foreach $x (sublist(@_,2)){
+		push(@array, "\" $+ $x $+ \"");
+	}
+	$aargs = join(" ", @array);
+	if ($aargs !eq "" || $aargs !eq $null) {
+		fireAlias($1, "pwsh $2", $aargs);
+	}
+	else {
+		fireAlias($1, "pwsh $2");
+	}
+});
+
+
+alias("test", {
+	println(@_);
+	
+	if ('-t' in @_) {
+		remove(@_, '-t');
+	}
+	
+	println(@_[0]);
+	println(@_[1]);
+	println(@_[2]);
+	println(@_[3]);
+	println(@_[4]);
+	println(@_[5]);
+	println(@_[6]);
+	println(@_[7]);
+	
+});

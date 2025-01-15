@@ -1,0 +1,63 @@
+#	ALIAS:	RUNASADMIN
+
+global('%opsec_status');
+
+if (%opsec_status['runasadmin'] eq "DISABLED") {
+
+	alias runasadmin {
+			# Check for Number of Arguements
+			if (size(@_) > 1) {
+				berror($1, "runasadmin: Too many arguments (NOTE: Command is DISABLED!)");
+				beacon_command_detail("runasadmin");
+				return;
+			}
+
+			# Task
+			try {
+				# Beginning Task
+				berror($1, "runasadmin: DISABLED due to OPSEC Concerns.");
+				
+				# Log Tasking to Event Log.
+				elog("\c4[!] Operator '" . mynick() . "' attempted to run 'runasadmin' on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")\o");
+				
+				# Print Information to Script Console.
+				println(
+					"\nPRINTED INFORMATION: RUNASADMIN => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+					. "\n\t[!] Operator '" . mynick() . "' Attempted to Run 'runasadmin', which is DISABLED: Due to OPSEC Concerns."
+				);
+			}
+			catch $exception {
+				
+				#Print Error to Script Console.
+				println(
+					"\nERROR INFORMATION: RUNASADMIN => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+					. "\runasadmin: " . $exception
+				);
+				
+				# Print Error and Return.
+				berror($1, "runasadmin: " . $exception);
+				return;
+			}
+		}
+
+	#	ALIAS REGISTER: RUNASADMIN
+	beacon_command_register(
+		"runasadmin",
+		"\c6[!] DISABLED: Due to OPSEC Concerns\o",
+		"Synopsis: runasadmin:\t[!] DISABLED: Due to OPSEC Concerns."
+	);
+}
+
+else if (%opsec_status['runasadmin'] eq "ENABLED") {
+	# Log Tasking to Event Log.
+	println("[!] Operator " . mynick() . " ENABLED OPSEC Command: runasadmin\o");
+	
+	alias_clear("runasadmin");
+	
+	#	ALIAS REGISTER: BLOCKDLLS
+	beacon_command_register(
+		"runasadmin",
+		"Execute a program in an elevated context",
+		"Use: runasadmin [exploit] [command] [args]\n\nAttempt to run the specified command in an elevated context.\n\nType runasadmin by itself to see a list of available local exploits."
+	);
+}

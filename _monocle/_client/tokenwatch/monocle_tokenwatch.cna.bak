@@ -1,0 +1,122 @@
+#	ALIAS:	TEMPLATE
+
+$twjobid = 0;
+
+include(script_resource('_monocle/_client/tokenwatch/tokenwatch.cna'));
+
+sub funct_tokenwatch {
+
+	global('@twarray $twjobid');
+	#$1 = Beacon ID
+	#$2 = Parameter
+	#$3 = TW Job ID
+
+	@param = @('enable', 'disable', 'show');
+	
+	if (iff($2 in @param, true, false)) {
+		if ($2 eq 'enable') {
+			# %(bid => "number", status => "enable", twjid => 1)
+			push(@twarray, %(bid => $1, status => $2, twjid => $3));
+		}
+		else if (($2 eq 'disable') && ($3 != '')) {
+			local('@temp');
+			foreach $temp (@twarray) {
+				if ($temp['twjid'] neq $3){
+					push(@temp, %(bid => $temp['bid'], status => $temp['status'], twjid => $temp['twjid']));
+				}
+			}
+			@twarray = @temp;
+		}
+		else if ($2 eq 'disable') {
+			clear(@twarray);
+		}
+		else if ($2 eq 'show') {
+			foreach $twstore (@twarray) {
+				binput($1, $twstore['bid'] . " " . $twstore['status'] . " " . $twstore['twjid']);
+			}
+		}
+	}
+	else {
+		return berror($1, "Not a valid Parameter; Allowed Parameters: enable, disable");
+	}
+}
+
+alias("tokenwatch", {
+
+		# Check for Number of Arguements
+		if (size(@_) < 2) {
+			berror($1, "tokenwatch: not enough parameters/arguments");
+			beacon_command_detail("tokenwatch");
+			return;
+		}
+		else if (size(@_) > 3) {
+			berror($1, "put: too many parameter/arguments supplied");
+			beacon_command_detail("tokenwatch");
+			return;
+		}
+
+		# Task
+		try {
+			
+			# Print Information to Beacon Console.
+			binput($1, "[ Running Token Watch Command ]");
+			
+			# Beginning Task
+			btask($1, "Running Token Watch Command (MITRE ATTACK ID)", "T000");
+			
+			# Log Tasking to Event Log.
+			elog("\cC[+] Running Token Watch Command on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")");
+			
+			# Print Information to Script Console.
+			println(
+				"\nPRINTED INFORMATION: TOKENWATCH => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\nRunning Token Watch Command."
+			);
+			
+			# Print Results to Beacon Console.
+			
+			# Set Note of Beacon
+			
+			# Highlight Beacon to <>
+			
+			# Task to Complete
+			if ($2 eq 'enable') {
+				$twjobid += 1;
+				funct_tokenwatch($1, $2, $twjobid);
+			}
+			else if ($2 eq 'disable') {
+				$rtwjobid = $2;
+				funct_tokenwatch($1, $2);
+			}
+			else if (($2 eq 'disable') && ($3 != "")) {
+				$rtwjobid = $3;
+				funct_tokenwatch($1, $2, $3);
+			}
+			else if ($2 eq 'show') {
+				funct_tokenwatch($1, $2, $3);
+			}
+			
+		}
+		catch $exception {
+			
+			#Print Error to Script Console.
+			println(
+				"\nERROR INFORMATION: TOKENWATCH => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\Failed to Run Token Watch Command: " . $exception
+			);
+			
+			# Print Error and Return.
+			berror($1, "tokenwatch: " . $exception);
+			return;
+		}
+	}
+);
+
+#	ALIAS REGISTER: TEMPLATE
+beacon_command_register(
+	"tokenwatch",
+	"[*] ALIAS: Template Short Desc",
+	"Synopsis: tokenwatch [ enable | disable [<twjid>] | show]\n\nTemplate Long Desc."
+ );
+ 
+ 

@@ -1,0 +1,65 @@
+#	ALIAS:	STOP_LOG
+
+alias("stop_log", {
+		global('%logging');
+
+		# Check for Number of Arguements
+		if (size(@_) > 1) {
+			berror($1, "stop_log: Too many arguments");
+			beacon_command_detail("stop_log");
+			return;
+		}
+		
+		# Task
+		try {
+			
+			# Print Information to Beacon Console.
+			binput($1, "[ Stopping Log; Redirecting output back to Beacon Console ]");
+			
+			# Beginning Task
+			btask($1, "Stopping Log; Redirecting output back to Beacon Console (MITRE ATTACK ID)", "T000");
+			
+			# Log Tasking to Event Log.
+			elog("\cC[+] Stopping Log; Redirecting output back to Beacon Console on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")");
+			
+			# Print Information to Script Console.
+			println(
+				"\nPRINTED INFORMATION: STOP_LOG => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\nStopping Log; Redirecting output back to Beacon Console."
+			);
+			
+			# Print Results to Beacon Console.
+			# Check if actually logging
+			if ( !%logging[$1] ) {
+				berror($1, "Logging not started on this beacon.");
+				return;
+			}
+
+			# Close handle and delete key
+			closef(%logging[$1]); 
+			removeAt(%logging, $1);	
+			blog($1, "Output saved.");
+			# Task Complete
+			
+		}
+		catch $exception {
+			
+			#Print Error to Script Console.
+			println(
+				"\nERROR INFORMATION: STOP_LOG => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\nSTOP_LOG: " . $exception
+			);
+			
+			# Print Error and Return.
+			berror($1, "STOP_LOG: " . $exception);
+			return;
+		}
+	}
+);
+
+#	ALIAS REGISTER: STOP_LOG
+beacon_command_register(
+	"stop_log",
+	"\c2[*] ALIAS: Stop Redirecting Beacon Output\o",
+	"Synopsis: stop_log\n\nStop Redirecting Beacon Output."
+ );

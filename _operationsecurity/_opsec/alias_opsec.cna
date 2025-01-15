@@ -1,0 +1,213 @@
+#	ALIAS:	OPSEC
+
+#$1 => Beacon ID (For Printing Purposes Only)
+#$2 => Enable, Disable, Show, Reload
+#$3 => Alias Name or All
+		
+# Add Something to Indicate Reload Needed
+
+sub funct_opsec_support {
+
+	global('%opsec_status');
+	local('$outp $aname $astatus $command $tf');
+	
+	$tf = "False";
+	foreach $command (keys(%opsec_status)){
+		if ($3 eq $command){
+			$tf = "True";
+		}
+		else if ($3 eq "all"){
+			$tf = "True";
+		}
+	}
+
+	if ($2 !eq "show" && $2 !eq "reload") {
+		if ($tf eq "False") {
+			berror($1, "$3 is not a OPSEC module")
+			return;
+		}
+	}
+	
+	if ($2 eq "enable") {
+		if ($3 eq "all"){
+			foreach $key => $value (%opsec_status) {
+				%opsec_status[$key] = 'ENABLED';
+			}
+			binput($1, "[+] Enter \c7opsec reload\o after \c9ENABLED\o to \c3ACTIVATE\o the Command.");
+			return;
+		}
+		else if ($3 !eq "") {
+			%opsec_status[$3] = 'ENABLED';
+			binput($1, "[+] Enter \c7opsec reload $3 \oafter \c9ENABLED\o to \c3ACTIVATE\o the Command.");
+			return;
+		}
+		else {
+			berror($1, "opsec: Specify module or 'all'");
+			beacon_command_detail("opsec");
+			return;
+		}
+	}
+	else if ($2 eq "disable") {
+		if ($3 eq "all"){
+			foreach $key => $value (%opsec_status) {
+				%opsec_status[$key] = 'DISABLED';
+			}
+			binput($1, "[+] Enter \c7opsec reload\o after \4DISABLED\o to \c3ACTIVATE\o the Command.");
+			return;
+		}
+		else if ($3 !eq "") {
+			%opsec_status[$3] = 'DISABLED';
+			binput($1, "[+] Enter \c7opsec reload\o after \c4DISABLED\o to \c3ACTIVATE\o the Command.");
+			return;
+		}
+		else {
+			berror($1, "opsec: Specify module or 'all'");
+			beacon_command_detail("opsec");
+			return;
+		}
+	}
+	else if ($2 eq "show") {
+		
+		$aname = "Alias";
+		$astatus = "Status";
+		$outp .= "\n\c8$[28]aname $[45]astatus\o\n";
+		$outp .= "\c7-------------------------------------\o\n";
+		if (($3 eq "") || ($3 eq "all")) {
+			
+			foreach $key => $value (%opsec_status) {
+				if (($value eq "DISABLED") && ("DISABLED:" !isin beacon_command_detail("$key"))) {
+					$outp .= "\c2$[25]key =>\o \c8$[10]value\o \c8\(*Need to Reload to Activate\)\n";
+				}
+				else if ($value eq "DISABLED") {
+					$outp .= "\c2$[25]key =>\o \c4$[10]value\o\n";
+				}
+				else if (($value eq "ENABLED") && ("DISABLED:" isin beacon_command_detail("$key"))) {
+					$outp .= "\c2$[25]key =>\o \c8$[10]value\o \c8\(*Need to Reload to Activate\)\n";
+				}
+				else if ($value eq "ENABLED") {
+					$outp .= "\c2$[25]key =>\o \c9$[10]value\o\n";
+				}
+			}
+		}
+		else if ($3 eq "enabled") {
+			foreach $key => $value (%opsec_status) {
+				if (($value eq "ENABLED") && ("DISABLED:" isin beacon_command_detail("$key"))) {
+					$outp .= "\c2$[25]key =>\o \c8$[10]value\o \c8\(*Need to Reload to Activate\)\n";
+				}
+				else if ($value eq "ENABLED") {
+					$outp .= "\c2$[25]key =>\o \c9$[45]value\o\n";
+				}
+			}
+		}
+		else if ($3 eq "disabled") {
+			foreach $key => $value (%opsec_status) {
+				if (($value eq "DISABLED") && ("DISABLED:" !isin beacon_command_detail("$key"))) {
+					$outp .= "\c2$[25]key =>\o \c8$[10]value\o \c8\(*Need to Reload to Activate\)\n";
+				}
+				else if ($value eq "DISABLED") {
+					$outp .= "\c2$[25]key =>\o \c4$[45]value\o\n";
+				}
+			}
+		}
+		else if ($3 !eq "") {
+			if (%opsec_status[$3] eq 'DISABLED'){
+				$outp .= "\c2$[25]3 =>\o \c4DISABLED\o\n";
+			}
+			else if (%opsec_status[$3] eq 'ENABLED') {
+				$outp .= "\c2$[25]3 =>\o \c9ENABLED\o\n";
+			}
+			else {
+				berror($1, "opsec: Could not find module.");
+				beacon_command_detail("opsec");
+				return;
+			}
+		}
+		return $outp;
+	}
+	else if ($2 eq "reload") {
+		if (($3 eq "") || ($3 eq "all")) {
+			foreach $key => $value (%opsec_status) {
+				include(script_resource("_operationsecurity/". $key . "/opsec_" . $key . ".cna"));
+			}
+		}
+		else if ($3 !eq "") {
+			include(script_resource("_operationsecurity/". $3 . "/opsec_" . $3 . ".cna"));
+		}
+	}
+	else {
+		berror($1, "opsec: Unrecognized command.");
+		beacon_command_detail("opsec");
+		return;
+	}
+}
+
+alias("opsec", {
+
+		local('$outp_opsec');
+		# Check for Number of Arguements
+		if (size(@_) > 3) {
+			berror($1, "opsec: Too many arguments");
+			beacon_command_detail("opsec");
+			return;
+		}
+		
+		# Task
+		try {
+			
+			# Print Information to Beacon Console.
+			binput($1, "[ Configuring OPSEC Commands ]");
+			
+			# Beginning Task
+			btask($1, "Configuring OPSEC Commands (MITRE ATTACK ID)", "T000");
+			
+			# Log Tasking to Event Log.
+			
+			if ($2 eq "reload") {
+				elog("\cC[+] Operator " . mynick() . " has reloaded OPSEC Command\(s\)\o");
+			}
+			else if ($2 !eq "show") {
+				elog("\cC[+] Operator " . mynick() . " has configured \($2\d\) OPSEC Command\(s\): \o\($3\)" );
+			}
+			
+			# Print Information to Script Console.
+			if ($2 eq "reload"){
+				println(
+					"\nPRINTED INFORMATION: OPSEC"
+					. "\n\tOperator " . mynick() . " has reloaded OPSEC Command\(s\). \($3\)"
+				);
+			}
+			else if ($2 !eq "show") {
+				println(
+					"\nPRINTED INFORMATION: OPSEC"
+					. "\n\tOperator " . mynick() . " has configured OPSEC Command\(s\). \($3\)"
+				);
+			}
+			
+			# Print Results to Beacon Console.
+			$outp_opsec = funct_opsec_support($1, $2, $3);
+			binput($1, $outp_opsec);
+
+			# Task Complete
+
+		}
+		catch $exception {
+			
+			#Print Error to Script Console.
+			println(
+				"\nERROR INFORMATION: OPSEC"
+				. "\nOPSEC: " . $exception
+			);
+			
+			# Print Error and Return.
+			berror($1, "OPSEC: " . $exception);
+			return;
+		}
+	}
+);
+
+#	ALIAS REGISTER: OPSEC
+beacon_command_register(
+	"opsec",
+	"\c2[*] ALIAS: Configure OPSEC Commands\o",
+	"Synopsis: opsec [enable|disable|reload|show]\n\nConfigure OPSEC Commands."
+ );

@@ -1,0 +1,66 @@
+#	ALIAS:	ICACLS
+
+alias("assembly icacls", {
+
+		# Check for Number of Arguements
+		if (size(@_) > 3) {
+			berror($1, "icacls: Too many arguments");
+			beacon_command_detail("icacls");
+			return;
+		}
+		
+		# Task
+		try {
+			
+			# Print Information to Beacon Console.
+			binput($1, "[ Printing Icacls Information ]");
+			
+			# Beginning Task
+			btask($1, "Printing Icacls Information (T000)", "T000");
+			
+			# Log Tasking to Event Log.
+			elog("\cC[+] Printing ICACLS Information \($3\) on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")");
+			
+			# Print Information to Script Console.
+			println(
+				"\nPRINTED INFORMATION: ICACLS => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\nPrinting Icacls Information for the file/directory: \($3\)"
+			);
+			
+			# Print Results to Beacon Console.
+			if (-is64 $1) {
+				if ("x86" !isin beacon_info($1, "barch")) {
+					bexecute_assembly($1, script_resource("_assemblies/icacls/icacls_x64_2.0.50727.exe"), "\"$3\"");
+				}
+				else if ("x86" isin beacon_info($1, "barch")) {
+					bexecute_assembly($1, script_resource("_assemblies/icacls/icacls_x86_2.0.50727.exe"), "\"$3\"");
+				}
+			}
+			else {
+				bexecute_assembly($1, script_resource("_assemblies/icacls/icacls_x86_2.0.50727.exe"), "\"$3\"");
+			}
+			
+			# Task Complete
+			
+		}
+		catch $exception {
+			
+			#Print Error to Script Console.
+			println(
+				"\nERROR INFORMATION: ICACLS => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\nICACLS: " . $exception
+			);
+			
+			# Print Error and Return.
+			berror($1, "ICACLS: " . $exception);
+			return;
+		}
+	}
+);
+
+#	ALIAS REGISTER: ICACLS
+beacon_command_register(
+	"assembly icacls",
+	"\cD" . "[*] .NET \(2.0\): Prints File/Directory DACLs" . "\o",
+	"Synopsis: icacls <Path/to/File>\n\nPrints File/Directory DACLs."
+ );

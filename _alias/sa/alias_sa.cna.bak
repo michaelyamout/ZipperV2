@@ -1,0 +1,220 @@
+#	ALIAS:	SA
+
+alias("sa", {
+		local('@icb');
+		# Check for Number of Arguements
+		if (size(@_) > 1) {
+			berror($1, "sa: Too many arguments");
+			beacon_command_detail("sa");
+			return;
+		}
+		
+		# Task
+		try {
+			
+			# Print Information to Beacon Console.
+			binput($1, "[ Gathering Situational Awareness ]");
+			
+			# Beginning Task
+			btask($1, "Gathering Situational Awareness (MITRE ATTACK ID)", "T000");
+			
+			# Log Tasking to Event Log.
+			elog("\cC[+] Gathering Situational Awareness on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")");
+			
+			# Print Information to Script Console.
+			println(
+				"\nPRINTED INFORMATION: SA => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\n\tGathering Situational Awareness."
+			);
+			
+			# Print Results to Beacon Console.
+			try{
+				if (("PREPPED" isin beacon_info($1, "note")) || ("BACKED OFF" isin beacon_info($1, "note")) || ("READY" isin beacon_info($1, "note"))) {
+					# PS
+					try {
+						binput($1, "--- PROCESS INFORMATION ---");
+						bps($1);
+					}
+					catch $exception {
+						berror($1, "sa => ipconfig: " . $exception);
+					}
+
+					# IPCONFIG
+					try {
+						binput($1, "--- IPCONFIG INFORMATION \(Assembly\)---");
+						#binput($1, "\t- Work In Progress. Waiting To Set Up BOFs");
+						fireAlias($1, "assembly ipconfig", $null); #(This was the Previous Command to Fire Alias)
+					}
+					catch $exception {
+						berror($1, "sa => ipconfig: " . $exception);
+					}
+	
+					# NETSTAT
+					try {
+						binput($1, "--- NETSTAT INFORMATION ---");
+						#binput($1, "\t- Work In Progress. Waiting To Set Up BOFs");
+						fireAlias($1, "assembly netstat", $null); #(This was the Previous Command to Fire Alias)
+					}
+					catch $exception {
+						berror($1, "sa => netstat: " . $exception);
+					}
+					
+					# WINDOWLIST
+					try {
+						binput($1, "--- WINDOWLIST INFORMATION ---");
+						#binput($1, "\t- Work In Progress. Waiting To Set Up BOFs");
+						fireAlias($1, "assembly windowlist", $null); #(This was the Previous Command to Fire Alias)
+					}
+					catch $exception {
+						berror($1, "sa => windowlist: " . $exception);
+					}
+					
+					# UPTIME
+					try {
+						binput($1, "--- UPTIME INFORMATION ---");
+						binput($1, "\t- Work In Progress. Waiting To Set Up BOFs");
+					}
+					catch $exception {
+						berror($1, "sa => uptime: " . $exception);
+					}
+					
+					# NET
+					try {
+						binput($1, "--- NET INFORMATION ---");
+						bnet($1, "localgroup", "127.0.0.1", "administrators");
+						bnet($1, "domain", "127.0.0.1", $null);
+						bnet($1, "domain_controllers", $null, $null);
+						bnet($1, "share", "127.0.0.1", $null);
+						bnet($1, "sessions", "127.0.0.1", $null);
+						bnet($1, "time", "127.0.0.1", $null);
+					}
+					catch $exception {
+						berror($1, "sa => net: " . $exception);
+					}
+					
+					# DRIVES
+					try {
+						binput($1, "--- DRIVES INFORMATION ---");
+						bdrives($1);
+					}
+					catch $exception {
+						berror($1, "sa => drives: " . $exception);
+					}
+					
+					# REGISTRY
+					try {
+						binput($1, "--- REGISTRY INFORMATION ---");
+						if (-is64 $1) {
+							breg_queryv($1, "HKLM\\SYSTEM\\CurrentControlSet\\Control\\ComputerName\\ActiveComputerName", "ComputerName", "x64");
+							breg_queryv($1, "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", "ProductName", "x64");
+							breg_queryv($1, "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment", "PROCESSOR_ARCHITECTURE", "x64");
+							breg_queryv($1, "HKLM\\SOFTWARE\\Microsoft\\Cryptography", "MachineGUID", "x64");
+						}
+						else {
+							breg_queryv($1, "HKLM\\SYSTEM\\CurrentControlSet\\Control\\ComputerName\\ActiveComputerName", "ComputerName", "x86");
+						    breg_queryv($1, "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", "ProductName", "x86");
+						    breg_queryv($1, "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment", "PROCESSOR_ARCHITECTURE", "x86");
+						    breg_queryv($1, "HKLM\\SOFTWARE\\Microsoft\\Cryptography", "MachineGUID", "x86");
+						}
+					}
+					catch $exception {
+						berror($1, "sa => registry: " . $exception);
+					}
+					
+					# LS
+					try {
+						binput($1, "--- LS INFORMATION ---");
+						bls($1, "C:\\");
+						bls($1, "C:\\Users");
+					}
+					catch $exception {
+						berror($1, "sa => ls: " . $exception);
+					}
+					
+					# RESOURCES
+					try {
+						binput($1, "--- RESOURCE INFORMATION ---");
+						fireAlias($1, "assembly resources", $null);
+					}
+					catch $exception {
+						berror($1, "sa => resources: " . $exception);
+					}
+				}
+				else {
+					berror($1, "WARNING: Beacon may not be 'Session Prepped'. Run 'sp' to set spawntos and ppid.");
+				}
+			}
+			catch $exception {
+				berror($1, "sa: " . $exception);
+			}
+			
+			
+			# Set Note of Beacon
+			if (("PREPPED" isin beacon_info($1, "note")) || ("BACKED OFF" isin beacon_info($1, "note")) || ("READY" isin beacon_info($1, "note") || ("NEW" isin beacon_info($1, "note")))) {
+				if (beacon_info($1, "pbid") != ""){
+				
+					if ((-isadmin $1) && ("SYSTEM" isin beacon_info($1, "user"))){
+						# EXAMPLE: BEACON | NEW | EST:2023-04-25 | 19:02:34 (EST)
+						bnote($1 , "BEACON | SYS | READY | LINKED:HOP | " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));
+					}
+					else if ((-isadmin $1) && ("SYSTEM" isin beacon_info($1, "user"))){
+						# EXAMPLE: BEACON | NEW | EST:2023-04-25 | 19:02:34 (EST)
+						bnote($1 , "BEACON | ADM | READY | LINKED:HOP | " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));
+					}
+					else {
+						# EXAMPLE: BEACON | NEW | EST:2023-04-25 | 19:02:34 (EST)
+						bnote($1 , "BEACON | READY | LINKED:HOP | " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));
+					}
+	
+				}
+				else {
+				
+					if ((-isadmin $1) && ("SYSTEM" isin beacon_info($1, "user"))){
+						# EXAMPLE: BEACON | NEW | EST:2023-04-25 | 19:02:34 (EST)
+						bnote($1 , "BEACON | SYS | READY | " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));
+					}
+					else if ((-isadmin $1) && ("SYSTEM" isin beacon_info($1, "user"))){
+						# EXAMPLE: BEACON | NEW | EST:2023-04-25 | 19:02:34 (EST)
+						bnote($1 , "BEACON | ADM | READY | " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));
+					}
+					else {
+						# EXAMPLE: BEACON | NEW | EST:2023-04-25 | 19:02:34 (EST)
+						bnote($1 , "BEACON | READY | " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));
+					}
+	
+				}
+
+			}
+			else {
+				berror($1, "\c8WARN: Session isn't Preppared! (i.e. PPID and Spawntos not Set)\o: Run 'sp' to Prepare the Session.\n\tIf these are set, add a note with 'PREPPED' in the string.");
+			}
+			
+			
+			# Highlight Beacon to <>
+			push(@icb, beacon_data($1));
+			highlight("beacons", @icb, "good");
+			
+			# Task Complete
+			
+		}
+		catch $exception {
+			
+			#Print Error to Script Console.
+			println(
+				"\nERROR INFORMATION: SA => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\sa: " . $exception
+			);
+			
+			# Print Error and Return.
+			berror($1, "sa: " . $exception);
+			return;
+		}
+	}
+);
+
+#	ALIAS REGISTER: SA
+beacon_command_register(
+	"sa",
+	"\c2[*] ALIAS: Runs Situational Awareness Commands\o",
+	"Synopsis: sa\n\nRuns the Following:\nipconfig, netstat, ls C:\\Users, net localgroup administrators, domain, domain_controllers, sessions, shares, time}, and queries registry for host information"
+ );

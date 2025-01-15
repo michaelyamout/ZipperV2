@@ -1,0 +1,84 @@
+#	ALIAS:	DSQUERY
+
+alias("assembly dsquery", {
+		
+		# Check for Number of Arguements
+		#if (size(@_) > 1) {
+		#	berror($1, "dsquery: Too many arguments");
+		#	beacon_command_detail("dsquery");
+		#	return;
+		#}
+		
+		# Task
+		try {
+			
+			# Print Information to Beacon Console.
+			binput($1, "[ DSQUERY ]");
+			
+			# Beginning Task
+			btask($1, "DSquerying Target (MITRE ATTACK ID)", "T000");
+			
+			# Log Tasking to Event Log.
+			elog("\cC[+] DSquerying Target on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")");
+			
+			# Print Information to Script Console.
+			println(
+				"\nPRINTED INFORMATION: DSQUERY => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\nDSquerying Target."
+			);
+			
+			global('$dsqcmd @dsqarray');
+			
+			clear(@dsqarray);
+			
+			$dsqcmd = "";
+			
+			foreach $x (sublist(@_,2)){
+				if ("ObjectClass" isin $x){
+					push(@dsqarray, "\" $+ $x $+ \"");
+				}
+				else {
+					push(@dsqarray, "$x");
+				}
+			}
+			
+			
+			$dsqcmd = join(" ", @dsqarray);
+			
+			# Print Results to Beacon Console.
+			if (-is64 $1) {
+				if ("x86" !isin beacon_info($1, "barch")) {
+					bexecute_assembly($1, script_resource("_assemblies/dsquery/dsquery_x64_4.0.30319.exe"), $dsqcmd);
+				}
+				else {
+					bexecute_assembly($1, script_resource("_assemblies/dsquery/dsquery_x86_4.0.30319.exe"), $dsqcmd);
+				}
+				
+			}
+			else {
+				bexecute_assembly($1, script_resource("_assemblies/dsquery/dsquery_x86_4.0.30319.exe"), $dsqcmd);
+			}
+			# Task Complete
+			
+		}
+		catch $exception {
+			
+			#Print Error to Script Console.
+			println(
+				"\nERROR INFORMATION: DSQUERY => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\nDSQUERY: " . $exception
+			);
+			
+			# Print Error and Return.
+			berror($1, "DSQUERY: " . $exception);
+			return;
+		}
+	}
+);
+
+#	ALIAS REGISTER: DSQUERY
+beacon_command_register(
+	"assembly dsquery",
+	"\cD" . "[*] .NET \(4.0\): DSQuery a Target" . "\o",
+	"Synopsis: dsquery\n\nDSquery a Target."
+ );

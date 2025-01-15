@@ -1,0 +1,240 @@
+#	ALIAS:	TASKKILL
+
+# taskkill: Supporting Function(s)
+sub funct_taskkill_argparse {
+	global('$safety');
+	@param = @('-s','-u','-p', '-pid', '-im', '/s', '/u' , '/p', '/pid', '/im');
+	if (iff($2 in @param, true, false)) {
+		if ($2 eq '-s' || $2 eq '/s') {
+			return %(idx => '1', arg => $3);
+		}
+		else if ($2 eq '-u' || $2 eq '/u') {
+			return %(idx => '2', arg => $3);
+		}
+		else if ($2 eq '-p' || $2 eq '/p') {
+			return %(idx => '3', arg => $3);
+		}
+		else if ($2 eq '-pid' || $2 eq '/pid') {
+			return %(idx => '4', arg => $3);
+		}
+		else if ($2 eq '-im' || $2 eq '/im') {
+			return %(idx => '5', arg => $3);
+		}
+	}
+	else {
+		berror($1, "Not a valid Parameter \($2\): Allowed Parameters: -s or /s, -u or /u, -p or /p, -pid or /pid, -im or /im");
+		$safety = "False";
+		return;
+	}
+}
+
+alias("assembly taskkill", {
+		local('$bid %arg1 %arg2 %arg3 %arg4 $tkargs');
+		global('$tks $tku $tkp $tkpid $tkim');
+		global('@params');
+		$safety = "True";
+		
+		# Check for Number of Arguements
+		if (size(@_) < 4) {
+			berror($1, "taskkill: Not enough Parameters/Arguements supplied");
+			beacon_command_detail("taskkill");
+			return;
+		}
+		else if (size(@_) > 10) {
+			if (iff(("-pid" in @_ || "/pid" in @_) && ("-im" in @_ || "/im" in @_), true, false)) {
+				berror($1, "taskkill: Cannot provide both 'pid' and 'im' parameters");
+				beacon_command_detail("taskkill");
+				return;
+			}
+			else {
+				berror($1, "taskkill: Too many Parameters/Arguements supplied");
+				beacon_command_detail("taskkill");
+				return;
+			}
+		}
+		else if (size(@_) >= 4) {
+			if (iff("-pid" in @_ || "/pid" in @_ || "-im" in @_ || "/im" in @_, false, true)) {
+				berror($1, "taskkill: '-pid' | '/pid' or '-im'|'/im' is a required parameter");
+				beacon_command_detail("taskkill");
+				return;
+			}
+		}
+		
+		# Task
+		try {
+			
+			# Print Information to Beacon Console.
+			binput($1, "[ Killing Task/Process ]");
+			
+			# Print Information to Script Console.
+			println(
+				"\nPRINTED INFORMATION: TASKKILL => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\nKilling Task/Process."
+			);
+			
+			# Print Results to Beacon Console.
+
+			# Parse Arguements
+			clear(@params);
+			$tks = "";
+			$tku = "";
+			$tkp = "";
+			$tkpid = "";
+			$tkim = "";
+			clear(%arg1);
+			
+			# argument 1 (-pid or /ppid or -im or /im)
+			%arg1 = funct_taskkill_argparse($1, $3, $4);
+			push(@params, %arg1);
+			
+			# argument 2 (-s or /s)
+			if ($5 ne $null || $6 ne $null) {
+				%arg2 = funct_taskkill_argparse($1, $5, $6);
+				push(@params, %arg2);
+			}
+			else {
+				%arg2 = %(idx => '1', arg => "");
+				push(@params, %arg2);
+			}
+			
+			# argument 3 (-u or /u)
+			if ($7 ne $null || $8 ne $null){
+				%arg3 = funct_taskkill_argparse($1, $7, $8);
+				push(@params, %arg3);
+			}
+			else {
+				%arg3 = %(idx => '2', arg => "");
+				push(@params, %arg3);
+			}
+			
+			# argument 4 (-p or /p)
+			if ($9 ne $null || $10 ne $null){
+				%arg4 = funct_taskkill_argparse($1, $9, $10);
+				push(@params, %arg4);
+			}
+			else {
+				%arg4 = %(idx => '3', arg => "");
+				push(@params, %arg4);
+			}
+
+			if (%arg1['idx'] eq '4') {
+				%arg4 = %(idx => '5', arg => "");
+				push(@params, %arg4);
+			}
+			else if (%arg1['idx'] eq '5') {
+				%arg4 = %(idx => '4', arg => "");
+				push(@params, %arg4);
+			}
+			
+			
+			if ($safety !eq "False") {
+				
+				# Beginning Task
+				btask($1, "Killing Task/Process (MITRE ATTACK ID)", "T000");
+				
+				# Log Tasking to Event Log.
+				elog("\cC[+] Killing Task/Process on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")");
+				
+				sort({ return $1['idx'] <=> $2['idx'];}, @params);
+				
+				foreach $argument (@params) {
+					if ($argument['idx'] eq '1'){
+						if ($argument['arg'] ne $null || $argument['arg'] ne "") {
+							$tks = $argument['arg'];
+						}
+						else {
+							$tks = "127.0.0.1";
+						}
+					}
+					if ($argument['idx'] eq '2'){
+						if ($argument['arg'] ne $null || $argument['arg'] ne "") {
+							$tku = $argument['arg'];
+						}
+						else {
+							$tku = $null;
+						}
+					}
+					if ($argument['idx'] eq '3'){
+						if ($argument['arg'] ne $null || $argument['arg'] ne "") {
+							$tkp = $argument['arg'];
+						}
+						else {
+							$tkp = $null;
+						}
+					}
+					if ($argument['idx'] eq '4'){
+						if ($argument['arg'] ne $null || $argument['arg'] ne "") {
+							$tkpid = $argument['arg'];
+						}
+						else {
+							$tkpid = $null;
+						}
+					}
+					if ($argument['idx'] eq '5'){
+						if ($argument['arg'] ne $null || $argument['arg'] ne "") {
+							$tkim = $argument['arg'];
+						}
+						else {
+							$tkim = $null;
+						}
+					}
+				} # End Foreach
+				
+				# Main Code
+				# Building Arguments: taskkill <arguments>
+				
+				$tkargs = "";
+				
+				if ($tks ne "" || $tks ne $null) {
+					$tkargs .= "/S $tks ";
+				}
+				if ($tku ne "" || $tku ne $null) {
+					$tkargs .= "/U $tku ";
+				}
+				if ($tkp ne "" || $tkp ne $null) {
+					$tkargs .= "/P $tkp ";
+				}
+				if ($tkpid ne "" || $tkpid ne $null) {
+					$tkargs .= "/PID $tkpid";
+				}
+				if ($tkim ne "" || $tkim ne $null) {
+					$tkargs .= "/IM $tkim";
+				}
+				
+				if (-is64 $1) {
+					if ("x86" !isin beacon_info($1, "barch")) {
+						bexecute_assembly($1, script_resource("_assemblies/taskkill/taskkill_x64_2.0.50727.exe"), $tkargs);
+					}
+					else {
+						bexecute_assembly($1, script_resource("_assemblies/taskkill/taskkill_x86_2.0.50727.exe"), $tkargs);
+					}
+				}
+				else{
+					bexecute_assembly($1, script_resource("_assemblies/taskkill/taskkill_x86_2.0.50727.exe"), $tkargs);
+				}
+			}
+			
+			# Task Complete
+			
+		}
+		catch $exception {
+			
+			#Print Error to Script Console.
+			println(
+				"\nERROR INFORMATION: TASKKILL => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\nTASKKILL: " . $exception
+			);
+			
+			# Print Error and Return.
+			berror($1, "TASKKILL: " . $exception);
+			return;
+		}
+	}
+);
+
+#	ALIAS REGISTER: TASKKILL
+beacon_command_register(
+	"assembly taskkill",
+	"\cD" . "[*] .NET \(2.0\): Locally or Remotely Kill Task/Process" . "\o",
+	"Synopsis: taskkill [-s <system>] [-u [DOMAIN\]<username> -p <password>] [-pid <pid> | -im <imagename>]\n\nLocally or Remotely Kill Task/Process.\n\(Note: You can use a '-' or '/' for the parameters\)"
+ );

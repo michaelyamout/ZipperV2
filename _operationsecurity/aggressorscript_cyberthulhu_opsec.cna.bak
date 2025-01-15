@@ -1,0 +1,79 @@
+#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+# COBALTSTRIKE CLIENT OPSEC SCRIPTS                 											#
+#	VESION:	0.0.0																				#
+#	STATUS:	*NEW* Initial Draft																	#
+#	TO-DO:	*NEW*																				#
+#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+# AUTHOR: CyberThulhu22																			#
+# 2023 Jesse Leverett										    								#
+#														  										#
+# <Description of CNA>										  									#
+#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+#	OPSEC SCRIPTS								  												#
+#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+#	  		         											 								#
+#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+
+# Set Initial OPSEC concerns to Disabled.
+
+global('%opsec_status');
+clear('%opsec_status');
+
+%opsec_status["runu"]                  = "DISABLED";
+%opsec_status["jump"]                  = "DISABLED";
+%opsec_status["spawn"]                 = "DISABLED";
+%opsec_status["spawnu"]                = "DISABLED";
+%opsec_status["setenv"]                = "DISABLED";
+%opsec_status["inject"]                = "DISABLED";
+%opsec_status["spawnas"]               = "DISABLED";
+%opsec_status["desktop"]               = "DISABLED";
+%opsec_status["elevate"]               = "DISABLED";
+%opsec_status["spunnel"]               = "DISABLED";
+%opsec_status["rportfwd"]              = "DISABLED";
+%opsec_status["getprivs"]              = "DISABLED";
+%opsec_status["psinject"]              = "DISABLED";
+%opsec_status["blockdlls"]             = "DISABLED";
+%opsec_status["getsystem"]             = "DISABLED";
+%opsec_status["covertvpn"]             = @("ENABLED", beacon_command_describe("covertvpn"), beacon_command_detail("covertvpn"));
+%opsec_status["powerpick"]             = "DISABLED";
+%opsec_status["powershell"]            = "DISABLED";
+%opsec_status["runasadmin"]            = "DISABLED";
+%opsec_status["remote-exec"]           = "DISABLED";
+%opsec_status["spunnel_local"]         = "DISABLED";
+%opsec_status["rportfwd_local"]        = "DISABLED";
+%opsec_status["powershell-import"]     = "DISABLED";
+%opsec_status["kerberos_ccache_use"]   = "DISABLED";
+%opsec_status["kerberos_ticket_use"]   = "DISABLED";
+%opsec_status["kerberos_ticket_purge"] = "DISABLED";
+
+
+# Include OPSEC Alias.
+include(script_resource("_operationsecurity/_opsec/alias_opsec.cna"));
+
+# Include SetOpsec Alias'.
+include(script_resource("_operationsecurity/runu/opsec_runu.cna"));
+include(script_resource("_operationsecurity/jump/opsec_jump.cna"));
+include(script_resource("_operationsecurity/spawn/opsec_spawn.cna"));
+include(script_resource("_operationsecurity/spawnu/opsec_spawnu.cna"));
+include(script_resource("_operationsecurity/setenv/opsec_setenv.cna"));
+include(script_resource("_operationsecurity/inject/opsec_inject.cna"));
+include(script_resource("_operationsecurity/spawnas/opsec_spawnas.cna"));
+include(script_resource("_operationsecurity/desktop/opsec_desktop.cna"));
+include(script_resource("_operationsecurity/elevate/opsec_elevate.cna"));
+include(script_resource("_operationsecurity/spunnel/opsec_spunnel.cna"));
+include(script_resource("_operationsecurity/rportfwd/opsec_rportfwd.cna"));
+include(script_resource("_operationsecurity/getprivs/opsec_getprivs.cna"));
+include(script_resource("_operationsecurity/psinject/opsec_psinject.cna"));
+include(script_resource("_operationsecurity/blockdlls/opsec_blockdlls.cna"));
+include(script_resource("_operationsecurity/getsystem/opsec_getsystem.cna"));
+include(script_resource("_operationsecurity/covertvpn/opsec_covertvpn.cna"));
+include(script_resource("_operationsecurity/powerpick/opsec_powerpick.cna"));
+include(script_resource("_operationsecurity/powershell/opsec_powershell.cna"));
+include(script_resource("_operationsecurity/runasadmin/opsec_runasadmin.cna"));
+include(script_resource("_operationsecurity/remote-exec/opsec_remote-exec.cna"));
+include(script_resource("_operationsecurity/spunnel_local/opsec_spunnel_local.cna"));
+include(script_resource("_operationsecurity/rportfwd_local/opsec_rportfwd_local.cna"));
+include(script_resource("_operationsecurity/powershell-import/opsec_powershell-import.cna"));
+include(script_resource("_operationsecurity/kerberos_ccache_use/opsec_kerberos_ccache_use.cna"));
+include(script_resource("_operationsecurity/kerberos_ticket_use/opsec_kerberos_ticket_use.cna"));
+include(script_resource("_operationsecurity/kerberos_ticket_purge/opsec_kerberos_ticket_purge.cna"));

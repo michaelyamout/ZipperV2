@@ -1,0 +1,43 @@
+#	ALIAS:	EXIT (MODIFIED)
+
+alias("exit", {
+
+		local('@icb');
+
+		# Check for Number of Arguements
+		if (size(@_) > 1) {
+			berror($1, "exit: Too many arguments");
+			beacon_command_detail("exit");
+			return;
+		}
+
+		# Log Tasking to Event Log.
+		elog("\c6[+] Exiting Implant ID: \o" . beacon_info($1, "id"));
+
+		# Print Information to Script Console
+		println(
+			"\nPRINTED INFORMATION: EXIT"
+			. "\nExiting Implant HOSTNAME (ID): \o" . beacon_info($1 , "computer") . " (" . beacon_info($1, "id") . ")"
+		);
+
+		# Send Input to Beacon
+		binput($1 , "[ Exiting Beacon Connection ]");
+		
+		# Update Note
+		bnote($1 , "EXITED | EST:" . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));
+		
+		# Send Exit to Beacon
+		bexit($1);
+		
+		# Highlight Exited Beacon White/None
+		push(@icb, beacon_data($1));
+		highlight("beacons", @icb, "");
+	}
+)
+
+#	ALIAS REGISTER: EXIT
+beacon_command_register(
+	"exit",
+	"\c2[*] ALIAS: Terminate the beacon session\o",
+	"Synopsis: exit\n\nTerminate the beacon session."
+ );

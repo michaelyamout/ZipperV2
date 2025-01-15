@@ -1,0 +1,63 @@
+#	ALIAS:	POWERPICK
+
+global('%opsec_status');
+
+if (%opsec_status['powerpick'] eq "DISABLED") {
+
+	alias powerpick {
+			# Check for Number of Arguements
+			if (size(@_) > 1) {
+				berror($1, "powerpick: Too many arguments (NOTE: Command is DISABLED!)");
+				beacon_command_detail("powerpick");
+				return;
+			}
+
+			# Task
+			try {
+				# Beginning Task
+				berror($1, "powerpick: DISABLED due to OPSEC Concerns.");
+				
+				# Log Tasking to Event Log.
+				elog("\c4[!] Operator '" . mynick() . "' attempted to run 'powerpick' on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")\o");
+				
+				# Print Information to Script Console.
+				println(
+					"\nPRINTED INFORMATION: POWERPICK => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+					. "\n\t[!] Operator '" . mynick() . "' Attempted to Run 'powerpick', which is DISABLED: Due to OPSEC Concerns."
+				);
+			}
+			catch $exception {
+				
+				#Print Error to Script Console.
+				println(
+					"\nERROR INFORMATION: POWERPICK => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+					. "\powerpick: " . $exception
+				);
+				
+				# Print Error and Return.
+				berror($1, "powerpick: " . $exception);
+				return;
+			}
+		}
+
+	#	ALIAS REGISTER: POWERPICK
+	beacon_command_register(
+		"powerpick",
+		"\c6[!] DISABLED: Due to OPSEC Concerns\o",
+		"Synopsis: powerpick:\t[!] DISABLED: Due to OPSEC Concerns."
+	);
+}
+
+else if (%opsec_status['powerpick'] eq "ENABLED") {
+	# Log Tasking to Event Log.
+	println("[!] Operator " . mynick() . " ENABLED OPSEC Command: powerpick\o");
+	
+	alias_clear("powerpick");
+	
+	#	ALIAS REGISTER: BLOCKDLLS
+	beacon_command_register(
+		"powerpick",
+		"Execute a command via Unmanaged PowerShell",
+		"Use: powerpick [commandlet] [arguments]\n     powerpick \"[PATCHES: [patch-rule] [patch-rule] [patch-rule] [patch-rule]]\" [commandlet] [arguments]\n\nExecute the command using Unmanaged PowerShell. Any cmdlets from the\nlast use of powershell-import are available here too.\n\nThe optional \"PATCHES:\" argument can modify functions in memory for the process.\nUp to 4 \"patch-rule\" rules can be specified (space delimited).\n\n\"patch-rule\" syntax (comma delimited): [library],[function],[offset],[hex-patch-value]\n\nlibrary          - 1-260 characters\nfunction         - 1-256 characters\noffset           - 0-65535 (The offset from the start of the executable function)\nhex-patch-value  - 2-200 hex characters (0-9,A-F). Length must be even number (hex pairs).\n\nExamples: powerpick \"PATCHES: ntdll.dll,EtwEventWrite,0,C300\" [commandlet] [arguments]\n          powerpick \"PATCHES: ntdll.dll,EtwEventWrite,0,C3 ntdll.dll,EtwEventWrite,1,00\" [commandlet] [arguments]"
+	);
+}

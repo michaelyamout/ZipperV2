@@ -1,0 +1,63 @@
+#	ALIAS:	PSINJECT
+
+global('%opsec_status');
+
+if (%opsec_status['psinject'] eq "DISABLED") {
+
+	alias psinject {
+			# Check for Number of Arguements
+			if (size(@_) > 1) {
+				berror($1, "psinject: Too many arguments (NOTE: Command is DISABLED!)");
+				beacon_command_detail("psinject");
+				return;
+			}
+
+			# Task
+			try {
+				# Beginning Task
+				berror($1, "psinject: DISABLED due to OPSEC Concerns.");
+				
+				# Log Tasking to Event Log.
+				elog("\c4[!] Operator '" . mynick() . "' attempted to run 'psinject' on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")\o");
+				
+				# Print Information to Script Console.
+				println(
+					"\nPRINTED INFORMATION: PSINJECT => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+					. "\n\t[!] Operator '" . mynick() . "' Attempted to Run 'psinject', which is DISABLED: Due to OPSEC Concerns."
+				);
+			}
+			catch $exception {
+				
+				#Print Error to Script Console.
+				println(
+					"\nERROR INFORMATION: PSINJECT => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+					. "\psinject: " . $exception
+				);
+				
+				# Print Error and Return.
+				berror($1, "psinject: " . $exception);
+				return;
+			}
+		}
+
+	#	ALIAS REGISTER: PSINJECT
+	beacon_command_register(
+		"psinject",
+		"\c6[!] DISABLED: Due to OPSEC Concerns\o",
+		"Synopsis: psinject:\t[!] DISABLED: Due to OPSEC Concerns."
+	);
+}
+
+else if (%opsec_status['psinject'] eq "ENABLED") {
+	# Log Tasking to Event Log.
+	println("[!] Operator " . mynick() . " ENABLED OPSEC Command: psinject\o");
+	
+	alias_clear("psinject");
+	
+	#	ALIAS REGISTER: BLOCKDLLS
+	beacon_command_register(
+		"psinject",
+		"",
+		""
+	);
+}

@@ -1,0 +1,63 @@
+#	ALIAS:	SPAWN
+
+global('%opsec_status');
+
+if (%opsec_status['spawn'] eq "DISABLED") {
+
+	alias spawn {
+			# Check for Number of Arguements
+			if (size(@_) > 1) {
+				berror($1, "spawn: Too many arguments (NOTE: Command is DISABLED!)");
+				beacon_command_detail("spawn");
+				return;
+			}
+
+			# Task
+			try {
+				# Beginning Task
+				berror($1, "spawn: DISABLED due to OPSEC Concerns.");
+				
+				# Log Tasking to Event Log.
+				elog("\c4[!] Operator '" . mynick() . "' attempted to run 'spawn' on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")\o");
+				
+				# Print Information to Script Console.
+				println(
+					"\nPRINTED INFORMATION: SPAWN => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+					. "\n\t[!] Operator '" . mynick() . "' Attempted to Run 'spawn', which is DISABLED: Due to OPSEC Concerns."
+				);
+			}
+			catch $exception {
+				
+				#Print Error to Script Console.
+				println(
+					"\nERROR INFORMATION: SPAWN => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+					. "\spawn: " . $exception
+				);
+				
+				# Print Error and Return.
+				berror($1, "spawn: " . $exception);
+				return;
+			}
+		}
+
+	#	ALIAS REGISTER: SPAWN
+	beacon_command_register(
+		"spawn",
+		"\c6[!] DISABLED: Due to OPSEC Concerns\o",
+		"Synopsis: spawn:\t[!] DISABLED: Due to OPSEC Concerns."
+	);
+}
+
+else if (%opsec_status['spawn'] eq "ENABLED") {
+	# Log Tasking to Event Log.
+	println("[!] Operator " . mynick() . " ENABLED OPSEC Command: spawn\o");
+	
+	alias_clear("spawn");
+	
+	#	ALIAS REGISTER: BLOCKDLLS
+	beacon_command_register(
+		"spawn",
+		"Spawn a session ",
+		"Use: spawn [x86|x64] [listener]\n     spawn [listener]\n\nSpawn an x86 or x64 process and inject shellcode for the listener."
+	);
+}

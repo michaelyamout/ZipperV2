@@ -1,0 +1,163 @@
+#	ALIAS:	TEMPLATE
+
+alias("u", {
+
+		# Check for Number of Arguements
+		if (size(@_) > 1) {
+			berror($1, "u: Too many arguments");
+			beacon_command_detail("u");
+			return;
+		}
+		
+		# Task
+		try {
+			
+			# Print Information to Beacon Console.
+			binput($1 , "[ Setting User Spawntos ]");
+			
+			# Beginning Task
+			btask($1, "Setting User Spanwtos (T000)", "T000");
+			
+			# Log Tasking to Event Log.
+			if ("*" !isin beacon_info($1, "user")){
+				elog("\cC[+] Setting User Spawntos on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")");
+			}
+			else if ((-isadmin $1) && ("SYSTEM" !isin beacon_info($1, "user"))){
+				elog("\cC[+] Setting Admin User Spawntos on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")");
+			}
+			else {
+				elog("\c4[-] Attempted setting User Spawntos, but Implant is not User/Admin User: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")");
+			}
+			
+			# Print Information to Script Console.
+			if ("*" !isin beacon_info($1, "user")){
+				println(
+				"\nPRINTED INFORMATION: Setting User Spawntos => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\nSPAWNTO (x86):\t" . "Set Spawnto (x86) to '%windir%\\syswow64\\gpupdate.exe /Target:User /Wait:-1 /Sync /Force'"
+				. "\nSPAWNTO (x64):\t" . "Set Spawnto (x64) to '%windir%\\sysnative\\gpupdate.exe /Target:User /Wait:-1 /Sync /Force'"
+				);
+			}
+			else if ((-isadmin $1) && ("SYSTEM" !isin beacon_info($1, "user"))){
+				println(
+				"\nPRINTED INFORMATION: Setting System Spawntos => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\nSPAWNTO (x86):\t" . "%windir%\\syswow64\\gpupdate.exe /Target:Computer /Wait:-1 /Sync /Force"
+				. "\nSPAWNTO (x64):\t" . "%windir%\\sysnative\\gpupdate.exe /Target:Computer /Wait:-1 /Sync /Force"
+				);
+			}
+			else {
+				println(
+				"\nPRINTED INFORMATION: Implant is not User Level or Admin User Level => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				);
+			}
+			
+			# Print Results to Beacon Console.
+			if ("*" !isin beacon_info($1, "user")){
+				$spawntoeightysix = "%windir%\\syswow64\\gpupdate.exe /Target:User /Wait:-1 /Sync /Force";
+				$spawntosixtyfour = "%windir%\\sysnative\\gpupdate.exe /Target:User /Wait:-1 /Sync /Force";
+				btask($1, "Setting User Level Spawnto's (x86/x64)");
+				bspawnto($1, "x86", "%windir%\\syswow64\\gpupdate.exe /Target:User /Wait:-1 /Sync /Force");
+				bspawnto($1, "x64", "%windir%\\sysnative\\gpupdate.exe /Target:User /Wait:-1 /Sync /Force");	
+			}
+			else if ((-isadmin $1) && ("SYSTEM" !isin beacon_info($1, "user"))) {
+				$spawntoeightysix = "%windir%\\syswow64\\gpupdate.exe /Target:Computer /Wait:-1 /Sync /Force";
+				$spawntosixtyfour = "%windir%\\sysnative\\gpupdate.exe /Target:Computer /Wait:-1 /Sync /Force";
+				btask($1, "Setting Admin User Level Spawnto's (x86/x64)");
+				bspawnto($1, "x86", "%windir%\\syswow64\\gpupdate.exe /Target:Computer /Wait:-1 /Sync /Force");
+				bspawnto($1, "x64", "%windir%\\sysnative\\gpupdate.exe /Target:Computer /Wait:-1 /Sync /Force");
+			}
+			else {
+				berror($1, "Beacon is not User Level or Admin User Level.");
+				return;
+			}
+			
+			# Set Note of Beacon
+			if ("READY" !isin beacon_info($1, "note")) {
+
+				if (beacon_info($1, "pbid") != ""){
+				
+					if ("*" !isin beacon_info($1, "user")){
+						# EXAMPLE: BEACON | NEW | EST:2023-04-25 | 19:02:34 (EST)
+						bnote($1 , "BEACON | SPAWNTOS SET | LINKED:HOP | " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));
+					}
+					else if ((-isadmin $1) && ("SYSTEM" isin beacon_info($1, "user"))){
+						# EXAMPLE: BEACON | NEW | EST:2023-04-25 | 19:02:34 (EST)
+						bnote($1 , "BEACON | ADM | SPAWNTOS SET | LINKED:HOP | " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));
+					}
+	
+				}
+				else {
+				
+					if ("*" !isin beacon_info($1, "user")){
+						# EXAMPLE: BEACON | NEW | EST:2023-04-25 | 19:02:34 (EST)
+						bnote($1 , "BEACON | SPAWNTOS SET | " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));
+					}
+					else if ((-isadmin $1) && ("SYSTEM" isin beacon_info($1, "user"))){
+						# EXAMPLE: BEACON | NEW | EST:2023-04-25 | 19:02:34 (EST)
+						bnote($1 , "BEACON | ADM | SPAWNTOS SET | " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));
+					}
+	
+				}
+				# Highlight New Beacon Yellow
+				push(@icb, beacon_data($1));
+				highlight("beacons", @icb, "neutral");
+			}
+			else {
+				btask($1, "Beacon Status is already 'READY'");
+				if (beacon_info($1, "pbid") != ""){
+				
+					if ("*" !isin beacon_info($1, "user")){
+						# EXAMPLE: BEACON | NEW | EST:2023-04-25 | 19:02:34 (EST)
+						bnote($1 , "BEACON | READY | LINKED:HOP | " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));
+					}
+					else if ((-isadmin $1) && ("SYSTEM" isin beacon_info($1, "user"))){
+						# EXAMPLE: BEACON | NEW | EST:2023-04-25 | 19:02:34 (EST)
+						bnote($1 , "BEACON | ADM | READY | LINKED:HOP | " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));
+					}
+	
+				}
+				else {
+				
+					if ("*" !isin beacon_info($1, "user")){
+						# EXAMPLE: BEACON | NEW | EST:2023-04-25 | 19:02:34 (EST)
+						bnote($1 , "BEACON | READY | " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));
+					}
+					else if ((-isadmin $1) && ("SYSTEM" isin beacon_info($1, "user"))){
+						# EXAMPLE: BEACON | NEW | EST:2023-04-25 | 19:02:34 (EST)
+						bnote($1 , "BEACON | ADM | READY | " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));
+					}
+	
+				}
+				
+				# Highlight New Beacon Yellow
+				push(@icb, beacon_data($1));
+				highlight("beacons", @icb, "good");
+			}
+			
+
+			
+			# Task Completed
+			btask($1, "\cCDONE\o");
+			
+		}
+		catch $exception {
+			
+			#Print Error to Script Console.
+			println(
+				"\nERROR INFORMATION: S => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\s: " . $exception
+			);
+			
+			# Print Error and Return.
+			berror($1, "s: " . $exception);
+			return;
+		}
+	}
+);
+
+#	ALIAS REGISTER: TEMPLATE
+beacon_command_register(
+	"u",
+	"\c2[*] ALIAS: Prepares the Session by Setting Spawntos\o",
+	"Synopsis: u\n\nPrepares the Session by Setting Spawntos."
+	. "\n\tSpawto's (x86/x64) will be set to gpupdate.exe for User/Admin Level Implants."
+ );

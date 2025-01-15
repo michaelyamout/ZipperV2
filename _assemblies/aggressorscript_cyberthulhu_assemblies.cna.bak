@@ -1,0 +1,55 @@
+#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+# COBALTSTRIKE CLIENT ASSEMBLIES SCRIPTS                    									#
+#	VESION:	0.0.0																				#
+#	STATUS:	*NEW* Initial Draft																	#
+#	TO-DO:	*NEW*																				#
+#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+# AUTHOR: CyberThulhu22										  									#
+# 2023 Jesse Leverett											  								#
+#														  		    							#
+# <Description of CNA>										  									#
+#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+#	ASSEMBLIES SCRIPTS								  											#
+#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+# "arp"																							#
+# "env"																							#
+# "lld"																							#
+# "icacls"																						#
+# "netstat"																						#
+# "dsquery"																						#
+# "dnsdump"																						#
+# "pagegrab"																					#
+# "ipconfig"																					#
+# "checksig"																					#
+# "taskkill"																					#
+# "auditpol"																					#
+# "chrometab"																					#
+# "testcreds"																					#
+# "resources"																					#
+# "dcom_exec"																					#
+# "windowlist"																					#
+# "tasklist_svc"																				#
+# "create_process"																				#
+#	             														 						#
+#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+
+include(script_resource("_assemblies/arp/assembly_arp.cna"));
+include(script_resource("_assemblies/env/assembly_env.cna"));
+include(script_resource("_assemblies/lld/assembly_lld.cna"));
+include(script_resource("_assemblies/icacls/assembly_icacls.cna"));
+include(script_resource("_assemblies/netstat/assembly_netstat.cna"));
+include(script_resource("_assemblies/dsquery/assembly_dsquery.cna"));
+include(script_resource("_assemblies/dnsdump/assembly_dnsdump.cna"));
+include(script_resource("_assemblies/pagegrab/assembly_pagegrab.cna"));
+include(script_resource("_assemblies/ipconfig/assembly_ipconfig.cna"));
+include(script_resource("_assemblies/checksig/assembly_checksig.cna"));
+include(script_resource("_assemblies/taskkill/assembly_taskkill.cna"));
+include(script_resource("_assemblies/auditpol/assembly_auditpol.cna"));
+include(script_resource("_assemblies/chrometab/assembly_chrometab.cna"));
+include(script_resource("_assemblies/testcreds/assembly_testcreds.cna"));
+include(script_resource("_assemblies/resources/assembly_resources.cna"));
+include(script_resource("_assemblies/dcom_exec/assembly_dcom_exec.cna"));
+include(script_resource("_assemblies/windowlist/assembly_windowlist.cna"));
+include(script_resource("_assemblies/tasklist_svc/assembly_tasklist_svc.cna"));
+include(script_resource("_assemblies/create_process/assembly_create_process.cna"));
+

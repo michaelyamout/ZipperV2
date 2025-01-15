@@ -1,0 +1,81 @@
+#	ALIAS:	INFO
+
+alias("info", {
+		global('$initialppid');
+		
+		# Check for Number of Arguements
+		if (size(@_) > 1) {
+			berror($1, "info: Too many arguments");
+			beacon_command_detail("info");
+			return;
+		}
+		
+		$initialppid = initialppid($1);
+		# Task Beacon to Print Implant Information.
+		btask($1, "Printing Information on Implant. (T1592.004)", "T1592.004");
+
+		# Log Tasking to Event Log.
+		elog("\cC[+] Printing Information on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")");
+
+		# Print Information to Script Console
+		println(
+			"\nPRINTED INFORMATION: INFO => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+			. "\nNTNAME:\t"                           . beacon_info($1, "computer")
+			. "\nOSINFO:\t"                           . beacon_info($1, "os") . " " . beacon_info($1, "ver") . " " . [lambda({if (-is64 $bid){return "x64";} else {return "x86";}}, $bid => $1)] . " Build " . beacon_info($1, "build")
+			. "\nINIPV4:\t"                           . beacon_info($1, "internal")
+			. "\nEXIPV4:\t"                           . beacon_info($1, "external")
+			. "\nUSERID:\t"                           . beacon_info($1, "user")
+			. "\n2ndTOKEN:\t"                           . beacon_info($1, "impersonated")
+			. "\nSESSION:\t"                          . beacon_info($1, "session")
+			. "\nSLEEP:\t"                            . beacon_info($1, "sleep")[0] . " " . beacon_info($1, "sleep")[1]
+			. "\nLISTENER:\t"                         . beacon_info($1, "listener")
+			. "\nPROCESS:\t"                          . beacon_info($1, "process") . " (" . beacon_info($1, "barch") . ")"
+			. "\nPROCID:\t"                           . beacon_info($1, "pid")
+			. "\nALIVE:\t"                            . beacon_info($1, "alive") . " (" . beacon_info($1, "lastf") . ")"
+			. "\nNOTE:\t"                             . beacon_info($1, "note")
+		);
+	
+		# Print Results to Beacon Console.
+		btask($1,
+			"\cCOUTPUT\o"
+			. "\n\t\c8[BEACON ID]\o :: \c8"           . beacon_info($1, "id")
+			. "\n\n\t\c4[*] NOTE: Information may not be 100% accurate\o"
+			. "\n\t\c4Recommend to run Enumeration Commands to gain accurate information."
+			# COMPUTER INFORMATION
+			. "\n\n\t\c6[!] COMPUTER INFORMATION"
+			. "\n\t\t\c3Hostname:\o\U\t\t\t\U "         . beacon_info($1, "computer")
+			. "\n\t\t\c3OS Info:\o\U\t\t\t\U "          . beacon_info($1, "os") . " " . beacon_info($1, "ver") . " " . [lambda({if (-is64 $bid){return "x64";} else {return "x86";}}, $bid => $1)] . " Build " . beacon_info($1, "build")
+			. "\n\t\t\c3Internal IP:\o\U\t\t\U "        . beacon_info($1, "internal")
+			. "\n\t\t\c3External IP:\o\U\t\t\U "        . beacon_info($1, "external")
+			# USER INFORMATION
+			. "\n\n\t\c6[!] USER INFORMATION"
+			. "\n\t\t\c3User:\o\U\t\t\t\U "             . beacon_info($1, "user")
+			. "\n\t\t\c3Impersonated:\o\U\t\t\U "       . beacon_info($1, "impersonated")
+			# BEACON INFORMATION
+			. "\n\n\t\c6[!] BEACON INFORMATION"
+			. "\n\t\t\c3Session:\o\U\t\t\t\U "          . beacon_info($1, "session")
+			. "\n\t\t\t\c9Sleep:\o\U\t\t\U "            . beacon_info($1, "sleep")[0] . " " . beacon_info($1, "sleep")[1]
+			. "\n\t\t\c3Listener:\o\U\t\t\t\U "         . beacon_info($1, "listener")
+			. "\n\t\t\t\c9HTTP/DNS:\o\U\t\t\U "         . [lambda({if (beacon_info($bid, "pbid") == ''){return "True";} else {return "False";}}, $bid => $1)]
+			. "\n\t\t\t\c9SSH/LINK/CONNECT:\o\U\t\U " . [lambda({if (beacon_info($bid, "pbid") != ''){return "True";} else {return "False";}}, $bid => $1)]
+			. "\n\t\t\c3Process:\o\U\t\t\t\U "          . beacon_info($1, "process") . " (" . beacon_info($1, "barch") . ")"
+			. "\n\t\t\t\c9PID:\o\U\t\t\U "              . beacon_info($1, "pid")
+			. "\n\t\t\t\c9PPID:\o\U\t\t\U "             . "NULL"
+			. "\n\t\t\c3Spawnto:\o"
+			. "\n\t\t\t\c9x86:\o\U\t\t\U "              . "NULL"
+			. "\n\t\t\t\c9x64:\o\U\t\t\U "              . "NULL"
+			. "\n\t\t\c3Alive:\o\U\t\t\t\U "            . beacon_info($1, "alive") . " (" . beacon_info($1, "lastf") . ")"
+			. "\n\t\t\c3Note:\o\U\t\t\t\U "             . beacon_info($1, "note")
+		);
+		
+		# Task Completed
+		btask($1, "\cCDONE\o");
+	}
+);
+
+#	ALIAS REGISTER:	INFO
+beacon_command_register(
+	"info",
+	"\c2[*] ALIAS: Print Information about Beacon\o",
+	"Synopsis: info\n\nPrint Information about the Beacon to the Beacon Console."
+);

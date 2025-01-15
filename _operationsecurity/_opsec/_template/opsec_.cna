@@ -1,0 +1,63 @@
+#	ALIAS:	TEMPLATE
+
+global('%opsec_status');
+
+if (%opsec_status['template'] eq "DISABLED") {
+
+	alias template {
+			# Check for Number of Arguements
+			if (size(@_) > 1) {
+				berror($1, "template: Too many arguments (NOTE: Command is DISABLED!)");
+				beacon_command_detail("template");
+				return;
+			}
+
+			# Task
+			try {
+				# Beginning Task
+				berror($1, "template: DISABLED due to OPSEC Concerns.");
+				
+				# Log Tasking to Event Log.
+				elog("\c4[!] Operator '" . mynick() . "' attempted to run 'template' on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")\o");
+				
+				# Print Information to Script Console.
+				println(
+					"\nPRINTED INFORMATION: TEMPLATE => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+					. "\n\t[!] Operator '" . mynick() . "' Attempted to Run 'template', which is DISABLED: Due to OPSEC Concerns."
+				);
+			}
+			catch $exception {
+				
+				#Print Error to Script Console.
+				println(
+					"\nERROR INFORMATION: TEMPLATE => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+					. "\template: " . $exception
+				);
+				
+				# Print Error and Return.
+				berror($1, "template: " . $exception);
+				return;
+			}
+		}
+
+	#	ALIAS REGISTER: TEMPLATE
+	beacon_command_register(
+		"template",
+		"\c6[!] DISABLED: Due to OPSEC Concerns\o",
+		"Synopsis: template:\t[!] DISABLED: Due to OPSEC Concerns."
+	);
+}
+
+else if (%opsec_status['template'] eq "ENABLED") {
+	# Log Tasking to Event Log.
+	println("[!] Operator " . mynick() . " ENABLED OPSEC Command: template\o");
+	
+	alias_clear("template");
+	
+	#	ALIAS REGISTER: BLOCKDLLS
+	beacon_command_register(
+		"template",
+		"",
+		""
+	);
+}

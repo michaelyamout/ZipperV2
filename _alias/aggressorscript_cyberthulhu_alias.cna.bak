@@ -1,0 +1,33 @@
+#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+# COBALTSTRIKE CLIENT ALIAS SCRIPTS                 											#
+#	VESION:	0.0.0																				#
+#	STATUS:	*NEW* Initial Draft																	#
+#	TO-DO:	*NEW*																				#
+#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+# AUTHOR: CyberThulhu22																			#
+# 2023 Jesse Leverett										    								#
+#														  										#
+# <Description of CNA>										  									#
+#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+#	ALIAS SCRIPTS								  												#
+#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+#	  s:	=>         											 								#
+#	  c:	=>         											 								#
+#	  sa:	=>         											 								#
+#	  sp:	=>         											 								#
+#	  info: =>         											 								#
+#	  exit:	=>         											 								#
+#	  touch:=>         											 								#
+#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+
+include(script_resource("_alias/b/alias_b.cna"));
+include(script_resource("_alias/c/alias_c.cna"));
+include(script_resource("_alias/s/alias_s.cna"));
+include(script_resource("_alias/u/alias_u.cna"));
+include(script_resource("_alias/sa/alias_sa.cna"));
+include(script_resource("_alias/sp/alias_sp.cna"));
+include(script_resource("_alias/put/alias_put.cna"));
+include(script_resource("_alias/info/alias_info.cna"));
+include(script_resource("_alias/exit/alias_exit.cna"));
+include(script_resource("_alias/touch/alias_touch.cna"));
+include(script_resource("_alias/pipes/alias_pipes.cna"));

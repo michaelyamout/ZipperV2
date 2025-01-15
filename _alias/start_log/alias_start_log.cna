@@ -1,0 +1,72 @@
+#	ALIAS:	START_LOG
+
+alias("start_log", {
+		global('%logging');
+
+		# Check for Number of Arguements
+		if (size(@_) > 1) {
+			berror($1, "start_log: Too many arguments");
+			beacon_command_detail("start_log");
+			return;
+		}
+		
+		# Task
+		try {
+			
+			# Print Information to Beacon Console.
+			binput($1, "[ Starting Log; Output will be Redirected ]");
+			
+			# Beginning Task
+			btask($1, "Starting Log; Output will be Redirected (T000)", "T000");
+			
+			# Log Tasking to Event Log.
+			elog("\cC[+] Starting Log; Output will be Redirected on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")");
+			
+			# Print Information to Script Console.
+			println(
+				"\nPRINTED INFORMATION: start_log => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\nStarting Log; Output will be Redirected."
+			);
+			
+			# Print Results to Beacon Console.
+			#check if already logging
+			if ( %logging[$1] ) { 
+				berror($1, "Logging already started on this beacon.");
+				return;
+			}
+			
+			# Check if saved_logs exists, otherwise Create directory
+			if (!-exists "./saved_logs/" ) {
+				mkdir("./saved_logs");
+			}
+
+			$filepath = "./saved_logs/" . $1 . "_" . formatDate("yyyyMMdd_HHmmssSSS") . ".log";
+			if (!-exists $filepath) { #create and save handle to log
+				createNewFile($filepath);
+				blog($1, "Saving output to " . $filepath . "\n");
+				%logging[$1] = openf(">" . $filepath);
+			}
+			# Task Complete
+			
+		}
+		catch $exception {
+			
+			#Print Error to Script Console.
+			println(
+				"\nERROR INFORMATION: start_log => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\nstart_log: " . $exception
+			);
+			
+			# Print Error and Return.
+			berror($1, "start_log: " . $exception);
+			return;
+		}
+	}
+);
+
+#	ALIAS REGISTER: start_log
+beacon_command_register(
+	"start_log",
+	"\c2[*] ALIAS: Redirect Beacon Console Output to Log File\o",
+	"Synopsis: start_log\n\nRedirect Beacon Console Output to Log File."
+ );

@@ -1,0 +1,277 @@
+#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+#	COBALTSTRIKE ACTIONS												 						#
+#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+#																 								#
+#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+
+# Supporting Methods
+sub initialppid {
+	global('$initialppid');
+	bps($1, lambda({
+		$initpid = beacon_info($1, "pid");
+		foreach $psline (split("\n", $2)) {
+			($psname, $psppid, $pspid, $null, $psuser) = split("\\s+", $psline);
+			if ($initpid isin $pspid){
+				$initialppid = $psppid;
+			}
+		}
+	}));
+}
+
+# Remove 'Next Tab' Feature
+unbind("Ctrl+Left");
+unbind("Ctrl+Right");
+
+# Remove the "Unknown Command" Response on hitting Enter
+alias("", {});
+# Add an ability to type a message into the Beacon Console
+alias("-", {});
+alias("--", {});
+alias("---", {});
+
+
+
+#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+#	ACTIONS ON INITIAL IMPLANT CALLBACK / CONNECTIN / LINK					 					#
+#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+#																								#
+#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+
+on beacon_input {
+	
+	if ("make_token" isin $3) {
+		local('@icb');
+		# Highlight Exited Beacon BLUE
+		push(@icb, beacon_data($1));
+		highlight("beacons", @icb, "cancel");
+	}
+	
+	if ("rev2self" isin $3) {
+		local('@icb');
+		# Highlight Exited Beacon BLUE
+		push(@icb, beacon_data($1));
+		highlight("beacons", @icb, "good");
+	}
+
+	if ("link " isin $3) {
+		local('@icb $pb');
+
+		$pb = beacon_info($1,"pbid"); #Grabs Previous Beacon ID
+
+		push(@icb, beacon_data($1));
+		highlight("beacons", @icb, "good");
+		
+		if ($pb == ""){
+			bnote($1, "BEACON | READY | LINKED:INIT | " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));	
+		}
+		else {
+			bnote($1, "BEACON | READY | LINKED:HOP | " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));	
+		}
+	}
+	
+	if ("unlink " isin $3) {
+		local('@icb $pb');
+
+		$pb = beacon_info($1,"pbid"); #Grabs Previous Beacon ID
+
+		push(@icb, beacon_data($1));
+		highlight("beacons", @icb, "ignore");
+		
+		bnote($1, "BEACON | UNLINKED | " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));	
+		bnote($pb, "BEACON | READY | " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));
+	}
+
+}
+
+on beacon_output {			# Beacon Output
+
+	local('@icb');
+	local('$pb');
+
+	$pb = beacon_info($1,"pbid"); #Grabs Previous Beacon ID
+	
+	if (($2 eq "beacon exit.") || ($2 eq "beacon connection lost.") || ($2 eq "session exit.")) {
+		# Highlight Exited Beacon Grey
+		push(@icb, beacon_data($1));
+		highlight("beacons", @icb, "ignore");
+		
+		bnote($1, "DEAD: " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));
+		
+		btask($1, "\cCDONE\o");
+	}
+		
+	if ("established link to child" isin $2) {
+		# Highlight Beacon Green
+		push(@icb, beacon_data($1));
+		highlight("beacons", @icb, "good");
+		
+		if ($pb == ""){
+			bnote($1, "BEACON | READY | LINKED:INIT | " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));	
+		}
+		else {
+			bnote($1, "BEACON | READY | LINKED:HOP | " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));	
+		}
+	}
+
+	if ("established link to parent" isin $2) {
+
+		if ("UNLINKED" !isin beacon_info($1, "note")){
+			if ($pb == ""){
+				bnote($1, "BEACON | READY | LINKED:INIT | " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));	
+			}
+			else {
+				bnote($1, "BEACON | READY | LINKED:HOP | " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));	
+			}
+			
+			# Highlight Beacon Green
+			push(@icb, beacon_data($1));
+			highlight("beacons", @icb, "neutral");
+		}
+		else {
+			if ($pb == ""){
+				bnote($1 , "BEACON | READY | LINKED:INIT | " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));	
+			}
+			else {
+				bnote($1, "BEACON | READY | LINKED:HOP | " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));	
+			}
+			
+			# Highlight Beacon Green
+			push(@icb, beacon_data($1));
+			highlight("beacons", @icb, "good");
+		}
+		
+	}
+
+}
+
+on beacon_output_alt {		# Beacon Output Alternatives
+
+	local('@icb');
+	local('$pb');
+
+	$pb = beacon_info($1,"pbid"); #Grabs Previous Beacon ID
+	
+	if (($2 eq "beacon exit.") || ($2 eq "beacon connection lost.") || ($2 eq "session exit.")) {
+		# Highlight Exited Beacon Grey
+		push(@icb, beacon_data($1));
+		highlight("beacons", @icb, "ignore");
+		
+		bnote($1, "DEAD: " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));
+		
+		btask($1, "\cCDONE\o");
+	}
+		
+	if ("established link to child" isin $2) {
+		# Highlight Beacon Green
+		push(@icb, beacon_data($1));
+		highlight("beacons", @icb, "good");
+		
+		if ($pb == ""){
+			bnote($1, "BEACON | READY | LINKED:INIT | " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));	
+		}
+		else {
+			bnote($1, "BEACON | READY | LINKED:HOP | " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));	
+		}
+	}
+
+	if ("established link to parent" isin $2) {
+
+		if ("UNLINKED" !isin beacon_info($1, "note")){
+			if ($pb == ""){
+				bnote($1, "BEACON | READY | LINKED:INIT | " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));	
+			}
+			else {
+				bnote($1, "BEACON | READY | LINKED:HOP | " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));	
+			}
+			
+			# Highlight Beacon Green
+			push(@icb, beacon_data($1));
+			highlight("beacons", @icb, "neutral");
+		}
+		else {
+			if ($pb == ""){
+				bnote($1, "BEACON | READY | LINKED:INIT | " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));	
+			}
+			else {
+				bnote($1, "BEACON | READY | LINKED:HOP | " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));	
+			}
+			
+			# Highlight Beacon Green
+			push(@icb, beacon_data($1));
+			highlight("beacons", @icb, "good");
+		}
+		
+	}
+
+}
+
+on beacon_initial {			# Initial Beacon Callback / Link / Connection
+	global('$initialppid');
+	local('@icb');
+	binput($1, "[ Acting on New Beacon Connection ]");
+	
+	if ((-isadmin $1) && ("SYSTEM" isin beacon_info($1, "user"))) {
+	
+		if (beacon_info($1, "pbid") != ""){
+			# EXAMPLE: BEACON | NEW | LINKED | EST:2023-04-25 | 19:02:34 (EST)
+			bnote($1, "BEACON | SYS | NEW | LINKED:HOP | EST:" . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));
+		}
+		else {
+			# EXAMPLE: BEACON | NEW | EST:2023-04-25 | 19:02:34 (EST)
+			bnote($1, "BEACON | SYS | NEW | EST:" . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));
+		}
+	
+	}
+	else if ((-isadmin $1) && ("SYSTEM" !isin beacon_data($1, "user"))) {
+	
+		if (beacon_info($1, "pbid") != ""){
+			# EXAMPLE: BEACON | NEW | LINKED | EST:2023-04-25 | 19:02:34 (EST)
+			bnote($1, "BEACON | ADM | NEW | LINKED:HOP | EST:" . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));
+		}
+		else {
+			# EXAMPLE: BEACON | NEW | EST:2023-04-25 | 19:02:34 (EST)
+			bnote($1, "BEACON | ADM | NEW | EST:" . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));
+		}
+	
+	}
+	else {
+		if (beacon_info($1, "pbid") != ""){
+			# EXAMPLE: BEACON | NEW | LINKED | EST:2023-04-25 | 19:02:34 (EST)
+			bnote($1, "BEACON | NEW | LINKED:HOP | EST:" . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));
+		}
+		else {
+			# EXAMPLE: BEACON | NEW | EST:2023-04-25 | 19:02:34 (EST)
+			bnote($1, "BEACON | NEW | EST:" . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));
+		}
+	}
+	
+	# Highlight New Beacon Red
+	push(@icb, beacon_data($1));
+	highlight("beacons", @icb, "bad");
+}
+
+on ssh_initial {			# Initial SSH Callback / Connection
+	local('@icb');
+	binput($1, "[ Acting on New SSH Connection ]");
+
+	# EXAMPLE: SSH | NEW | EST:2023-04-25 | 19:02:34 (EST)
+	bnote($1, "SSH | NEW | EST:" . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));
+	
+	# Highlight New Beacon Red
+	push(@icb, beacon_data($1));
+	highlight("beacons", @icb, "bad");
+}
+
+on beacon_initial_empty {	# Initial DNS Beacon Callback / Link / Connection
+	local('@icb');
+	binput($1, "[ Acting on New DNS Beacon Connection ]");
+
+	# EXAMPLE: BEACON | DNS | NEW | EST:2023-04-25 | 19:02:34 (EST)
+	bnote($1, "BEACON | DNS | NEW | EST:" . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));
+
+	# Setting DNS Data Channel to DNS TXT
+	bmode($1, "dns-txt");
+	
+	# Request the Beacon Checkin and Send its Metadata
+	bcheckin($1);
+}

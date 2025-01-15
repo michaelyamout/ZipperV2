@@ -1,0 +1,18 @@
+#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+# COBALTSTRIKE CLIENT TOPHAT SCRIPTS                        									#
+#	VESION:	0.0.0																				#
+#	STATUS:	*NEW* Initial Draft																	#
+#	TO-DO:	*NEW*																				#
+#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+# AUTHOR: CyberThulhu22										  									#
+# 2023 Jesse Leverett											  								#
+#														  										#
+# Tophat is designed to Run on the Teamserver to Cache/Store Data and Alter Client Appearance	#
+#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+#	TOPHAT SCRIPTS								  												#
+#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+#	[-]	TeamServer CNA :												 						#
+#	[-]	Client CNA :												 						    #
+#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+
+include(script_resource("_tophat/tophat_client/tophat_ps/tophat_ps.cna"));

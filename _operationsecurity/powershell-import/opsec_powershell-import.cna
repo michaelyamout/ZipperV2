@@ -1,0 +1,63 @@
+#	ALIAS:	POWERSHELL-IMPORT
+
+global('%opsec_status');
+
+if (%opsec_status['powershell-import'] eq "DISABLED") {
+
+	alias powershell-import {
+			# Check for Number of Arguements
+			if (size(@_) > 1) {
+				berror($1, "powershell-import: Too many arguments (NOTE: Command is DISABLED!)");
+				beacon_command_detail("powershell-import");
+				return;
+			}
+
+			# Task
+			try {
+				# Beginning Task
+				berror($1, "powershell-import: DISABLED due to OPSEC Concerns.");
+				
+				# Log Tasking to Event Log.
+				elog("\c4[!] Operator '" . mynick() . "' attempted to run 'powershell-import' on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")\o");
+				
+				# Print Information to Script Console.
+				println(
+					"\nPRINTED INFORMATION: POWERSHELL-IMPORT => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+					. "\n\t[!] Operator '" . mynick() . "' Attempted to Run 'powershell-import', which is DISABLED: Due to OPSEC Concerns."
+				);
+			}
+			catch $exception {
+				
+				#Print Error to Script Console.
+				println(
+					"\nERROR INFORMATION: POWERSHELL-IMPORT => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+					. "\powershell-import: " . $exception
+				);
+				
+				# Print Error and Return.
+				berror($1, "powershell-import: " . $exception);
+				return;
+			}
+		}
+
+	#	ALIAS REGISTER: POWERSHELL-IMPORT
+	beacon_command_register(
+		"powershell-import",
+		"\c6[!] DISABLED: Due to OPSEC Concerns\o",
+		"Synopsis: powershell-import:\t[!] DISABLED: Due to OPSEC Concerns."
+	);
+}
+
+else if (%opsec_status['powershell-import'] eq "ENABLED") {
+	# Log Tasking to Event Log.
+	println("[!] Operator " . mynick() . " ENABLED OPSEC Command: powershell-import\o");
+	
+	alias_clear("powershell-import");
+	
+	#	ALIAS REGISTER: BLOCKDLLS
+	beacon_command_register(
+		"powershell-import",
+		"Import a powershell script",
+		"Use: powershell-import [/path/to/local/script.ps1]\n\nImport a powershell script which is combined with future\ncalls to the powershell command. You may only use one\nimported script at a time."
+	);
+}

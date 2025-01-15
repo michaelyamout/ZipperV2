@@ -1,0 +1,125 @@
+#	ALIAS:	B
+
+alias("b", {
+
+		# Check for Number of Arguements
+		if (size(@_) > 1) {
+			berror($1, "b: Too many arguments");
+			beacon_command_detail("b");
+			return;
+		}
+		
+		# Task
+		try {
+			
+			# Print Information to Beacon Console.
+			binput($1, "[ Backing Off Session ]");
+			
+			# Beginning Task
+			btask($1, "Backing Off Session (MITRE ATTACK ID)", "T000");
+			
+			# Log Tasking to Event Log.
+			elog("\cC[+] Backing Off Session on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")");
+			
+			# Print Information to Script Console.
+			println(
+				"\nPRINTED INFORMATION: b => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\nBacking Off Session (Running 'rev2self', 'ps', 'jobs', and 'pwd'."
+			);
+			
+			# Print Results to Beacon Console.(Skipping).
+			
+			# Set Note of Beacon (NEED TO DO THIS.)
+			if ("READY" !isin beacon_info($1, "note")) {
+
+				if (beacon_info($1, "pbid") != ""){
+				
+					if ("*" !isin beacon_info($1, "user")){
+						# EXAMPLE: BEACON | NEW | EST:2023-04-25 | 19:02:34 (EST)
+						bnote($1 , "BEACON | BACKED OFF | LINKED:HOP | " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));
+					}
+					else if ((-isadmin $1) && ("SYSTEM" !isin beacon_info($1, "user"))){
+						# EXAMPLE: BEACON | NEW | EST:2023-04-25 | 19:02:34 (EST)
+						bnote($1 , "BEACON | ADM | BACKED OFF | LINKED:HOP | " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));
+					}
+					else if ((-isadmin $1) && ("SYSTEM" isin beacon_info($1, "user"))) {
+						bnote($1 , "BEACON | SYS | BACKED OFF | LINKED:HOP | " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));
+					}	
+				}
+				else {
+				
+					if ("*" !isin beacon_info($1, "user")){
+						# EXAMPLE: BEACON | NEW | EST:2023-04-25 | 19:02:34 (EST)
+						bnote($1 , "BEACON | BACKED OFF | " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));
+					}
+					else if ((-isadmin $1) && ("SYSTEM" !isin beacon_info($1, "user"))){
+						# EXAMPLE: BEACON | NEW | EST:2023-04-25 | 19:02:34 (EST)
+						bnote($1 , "BEACON | ADM | BACKED OFF | " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));
+					}
+					else if ((-isadmin $1) && ("SYSTEM" isin beacon_info($1, "user"))) {
+						bnote($1 , "BEACON | SYS | BACKED OFF | " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));
+					}
+	
+				}
+				# Highlight New Beacon Yellow
+				push(@icb, beacon_data($1));
+				highlight("beacons", @icb, "neutral");
+			}
+			else {
+				btask($1, "Beacon Status is already 'READY'");
+				if (beacon_info($1, "pbid") != ""){
+				
+					if ("*" !isin beacon_info($1, "user")){
+						# EXAMPLE: BEACON | NEW | EST:2023-04-25 | 19:02:34 (EST)
+						bnote($1 , "BEACON | BACKED OFF | LINKED:HOP | " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));
+					}
+					else if ((-isadmin $1) && ("SYSTEM" isin beacon_info($1, "user"))){
+						# EXAMPLE: BEACON | NEW | EST:2023-04-25 | 19:02:34 (EST)
+						bnote($1 , "BEACON | ADM | BACKED OFF | LINKED:HOP | " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));
+					}
+	
+				}
+				else {
+				
+					if ("*" !isin beacon_info($1, "user")){
+						# EXAMPLE: BEACON | NEW | EST:2023-04-25 | 19:02:34 (EST)
+						bnote($1 , "BEACON | BACKED OFF | " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));
+					}
+					else if ((-isadmin $1) && ("SYSTEM" isin beacon_info($1, "user"))){
+						# EXAMPLE: BEACON | NEW | EST:2023-04-25 | 19:02:34 (EST)
+						bnote($1 , "BEACON | ADM | BACKED OFF | " . formatDate('yyyy-MM-dd | HH:mm:ss (z)'));
+					}
+				}
+			}
+			
+			# Highlight Beacon to YELLOW.
+			push(@icb, beacon_data($1));
+			highlight("beacons", @icb, "neutral");
+			
+			# Task to Complete.
+			brev2self($1);
+			bps($1);
+			bjobs($1);
+			bpwd($1);
+		}
+		catch $exception {
+			
+			#Print Error to Script Console.
+			println(
+				"\nERROR INFORMATION: b => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\nFailed to Run Back Off Commands: " . $exception
+			);
+			
+			# Print Error and Return.
+			berror($1, "b: " . $exception);
+			return;
+		}
+	}
+);
+
+#	ALIAS REGISTER: B
+beacon_command_register(
+	"b",
+	"\c2[*] ALIAS: Quick alias for \"backing out\" at End of Day\o",
+	"Synopsis: b\n\nQuick alias for \"backing out\" at End of Day."
+ );

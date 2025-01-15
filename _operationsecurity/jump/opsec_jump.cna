@@ -1,0 +1,63 @@
+#	ALIAS:	JUMP
+
+global('%opsec_status');
+
+if (%opsec_status['jump'] eq "DISABLED") {
+
+	alias jump {
+			# Check for Number of Arguements
+			if (size(@_) > 1) {
+				berror($1, "jump: Too many arguments (NOTE: Command is DISABLED!)");
+				beacon_command_detail("jump");
+				return;
+			}
+
+			# Task
+			try {
+				# Beginning Task
+				berror($1, "jump: DISABLED due to OPSEC Concerns.");
+				
+				# Log Tasking to Event Log.
+				elog("\c4[!] Operator '" . mynick() . "' attempted to run 'jump' on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")\o");
+				
+				# Print Information to Script Console.
+				println(
+					"\nPRINTED INFORMATION: JUMP => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+					. "\n\t[!] Operator '" . mynick() . "' Attempted to Run 'jump', which is DISABLED: Due to OPSEC Concerns."
+				);
+			}
+			catch $exception {
+				
+				#Print Error to Script Console.
+				println(
+					"\nERROR INFORMATION: JUMP => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+					. "\jump: " . $exception
+				);
+				
+				# Print Error and Return.
+				berror($1, "jump: " . $exception);
+				return;
+			}
+		}
+
+	#	ALIAS REGISTER: JUMP
+	beacon_command_register(
+		"jump",
+		"\c6[!] DISABLED: Due to OPSEC Concerns\o",
+		"Synopsis: jump:\t[!] DISABLED: Due to OPSEC Concerns."
+	);
+}
+
+else if (%opsec_status['jump'] eq "ENABLED") {
+	# Log Tasking to Event Log.
+	println("[!] Operator " . mynick() . " ENABLED OPSEC Command: jump\o");
+	
+	alias_clear("jump");
+	
+	#	ALIAS REGISTER: BLOCKDLLS
+	beacon_command_register(
+		"jump",
+		"Spawn a session on a remote host",
+		"Use: jump [exploit] [target] [listener]\n\nAttempt to spawn a session on a remote target with the specified exploit.\n\nType jump by itself to see a list of available remote exploits."
+	);
+}

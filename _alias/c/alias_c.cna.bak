@@ -1,0 +1,50 @@
+#	ALIAS:	C
+
+alias("c", {
+
+		# Check for Number of Arguements
+		if (size(@_) > 1) {
+			berror($1, "c: Too many arguments");
+			beacon_command_detail("c");
+			return;
+		}
+		
+		# Task
+		try {
+			
+			# Task Beacon to Clear Beacon Queue.
+			btask($1, "Clearing Beacon Queue.");
+			
+			# Log Tasking to Event Log. (Skipping).
+			
+			# Print Information to Script Console.
+			println(
+				"\nPRINTED INFORMATION: C => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\nCleared Beacon Queue."
+			);
+			
+			# Print Results to Beacon Console.
+			bclear($1);
+			
+		}
+		catch $exception {
+			
+			#Print Error to Script Console.
+			println(
+				"\nERROR INFORMATION: C => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\nC: " . $exception
+			);
+			
+			# Print Error and Return.
+			berror($1, "c: " . $exception);
+			return;
+		}
+	}
+);
+
+#	ALIAS REGISTER: C
+beacon_command_register(
+	"c",
+	"\c2[*] ALIAS: Clear beacon queue\o",
+	"Synopsis: c\n\nClear beacon queue."
+ );

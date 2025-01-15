@@ -1,0 +1,66 @@
+#	ALIAS:	RESOURCES
+
+alias("assembly resources", {
+
+		# Check for Number of Arguements
+		if (size(@_) > 2) {
+			berror($1, "resources: Too many arguments");
+			beacon_command_detail("assembly resources");
+			return;
+		}
+		
+		# Task
+		try {
+			
+			# Print Information to Beacon Console.
+			binput($1, "[ Printing Resource Information ]");
+			
+			# Beginning Task
+			btask($1, "Printing Resource Information (T000)", "T000");
+			
+			# Log Tasking to Event Log.
+			elog("\cC[+] Printing Resource Information on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")");
+			
+			# Print Information to Script Console.
+			println(
+				"\nPRINTED INFORMATION: RESOURCES => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\nPrinting Resource Information."
+			);
+			
+			# Print Results to Beacon Console.
+			if (-is64 $1) {
+				if ("x86" !isin beacon_info($1, "barch")) {
+					bexecute_assembly($1, script_resource("_assemblies/resources/resources_x64_2.0.50727.exe"), $null);
+				}
+				else {
+					bexecute_assembly($1, script_resource("_assemblies/resources/resources_x86_2.0.50727.exe"), $null);
+				}
+				
+			}
+			else {
+				bexecute_assembly($1, script_resource("_assemblies/resources/resources_x86_2.0.50727.exe"), $null);
+			}
+			# Task Complete
+			
+		}
+		catch $exception {
+			
+			#Print Error to Script Console.
+			println(
+				"\nERROR INFORMATION: RESOURCES => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\nRESOURCES: " . $exception
+			);
+			
+			# Print Error and Return.
+			berror($1, "RESOURCES: " . $exception);
+			return;
+		}
+	}
+);
+
+#	ALIAS REGISTER: RESOURCES
+beacon_command_register(
+	"assembly resources",
+	"\cD" . "[*] .NET \(2.0\): Prints resource information" . "\o",
+	"Synopsis: resources\n\nTemplate Long Desc."
+ );

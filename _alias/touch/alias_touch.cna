@@ -1,0 +1,55 @@
+#	ALIAS:	TOUCH	(BUILTIN "TIMESTOMP" IN REVERSE)
+
+alias("touch", {
+
+		# Check for Number of Arguments
+		if (size(@_) > 3) {
+			berror($1, "touch: Too many arguments");
+			beacon_command_detail("touch");
+			return;
+		}
+		
+		# Task
+		try {
+			
+			# Task Beacon to Clear Beacon Queue.
+			btask($1, "Timestomping File (" . $2 . ") with time(s) from " . $3 . " ()", "T000");
+			
+			# Log Tasking to Event Log.
+			elog("\cC[+] Timestomping File (" . $2 . ") on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")");
+			
+			# Print Information to Script Console.
+			println(
+				"\nPRINTED INFORMATION: TOUCH => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\n\tTime stomped '" . $2 . "' with the Timestamp Information from '" . $3 . "'"
+			);
+			
+			# Print Results to Beacon Console.
+			btimestomp($1, $3, $2);
+			
+		}
+		catch $exception {
+			
+			# Log Error to Event Log.
+			elog("\c4[-] Failed Timestomping File (" . $2 . ") on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")");
+			
+			#Print Error to Script Console.
+			println(
+				"\nERROR INFORMATION: TOUCH => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\nTOUCH: " . $exception
+			);
+			
+			# Print Error and Return.
+			berror($1, "touch: " . $exception);
+			
+			return;
+		}
+	}
+);
+
+#	ALIAS REGISTER: TOUCH
+beacon_command_register(
+	"touch",
+	"\c2[*] ALIAS: Apply timestamps from one file to another\o",
+	"Synopsis: touch [Source] [Destination]\n\nUpdate the Modified, Access, and Created times of Destination to match those of Source."
+ );

@@ -1,0 +1,63 @@
+#	ALIAS:	POWERSHELL
+
+global('%opsec_status');
+
+if (%opsec_status['powershell'] eq "DISABLED") {
+
+	alias powershell {
+			# Check for Number of Arguements
+			if (size(@_) > 1) {
+				berror($1, "powershell: Too many arguments (NOTE: Command is DISABLED!)");
+				beacon_command_detail("powershell");
+				return;
+			}
+
+			# Task
+			try {
+				# Beginning Task
+				berror($1, "powershell: DISABLED due to OPSEC Concerns.");
+				
+				# Log Tasking to Event Log.
+				elog("\c4[!] Operator '" . mynick() . "' attempted to run 'powershell' on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")\o");
+				
+				# Print Information to Script Console.
+				println(
+					"\nPRINTED INFORMATION: POWERSHELL => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+					. "\n\t[!] Operator '" . mynick() . "' Attempted to Run 'powershell', which is DISABLED: Due to OPSEC Concerns."
+				);
+			}
+			catch $exception {
+				
+				#Print Error to Script Console.
+				println(
+					"\nERROR INFORMATION: POWERSHELL => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+					. "\powershell: " . $exception
+				);
+				
+				# Print Error and Return.
+				berror($1, "powershell: " . $exception);
+				return;
+			}
+		}
+
+	#	ALIAS REGISTER: POWERSHELL
+	beacon_command_register(
+		"powershell",
+		"\c6[!] DISABLED: Due to OPSEC Concerns\o",
+		"Synopsis: powershell:\t[!] DISABLED: Due to OPSEC Concerns."
+	);
+}
+
+else if (%opsec_status['powershell'] eq "ENABLED") {
+	# Log Tasking to Event Log.
+	println("[!] Operator " . mynick() . " ENABLED OPSEC Command: powershell\o");
+	
+	alias_clear("powershell");
+	
+	#	ALIAS REGISTER: BLOCKDLLS
+	beacon_command_register(
+		"powershell",
+		"Execute a command via powershell.exe",
+		"Use: powershell [commandlet] [arguments]\n\nExecute the command using powershell. Any cmdlets from the\nlast use of powershell-import are available here too."
+	);
+}

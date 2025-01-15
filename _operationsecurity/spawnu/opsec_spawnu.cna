@@ -1,0 +1,63 @@
+#	ALIAS:	SPAWNU
+
+global('%opsec_status');
+
+if (%opsec_status['spawnu'] eq "DISABLED") {
+
+	alias spawnu {
+			# Check for Number of Arguements
+			if (size(@_) > 1) {
+				berror($1, "spawnu: Too many arguments (NOTE: Command is DISABLED!)");
+				beacon_command_detail("spawnu");
+				return;
+			}
+
+			# Task
+			try {
+				# Beginning Task
+				berror($1, "spawnu: DISABLED due to OPSEC Concerns.");
+				
+				# Log Tasking to Event Log.
+				elog("\c4[!] Operator '" . mynick() . "' attempted to run 'spawnu' on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")\o");
+				
+				# Print Information to Script Console.
+				println(
+					"\nPRINTED INFORMATION: SPAWNU => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+					. "\n\t[!] Operator '" . mynick() . "' Attempted to Run 'spawnu', which is DISABLED: Due to OPSEC Concerns."
+				);
+			}
+			catch $exception {
+				
+				#Print Error to Script Console.
+				println(
+					"\nERROR INFORMATION: SPAWNU => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+					. "\spawnu: " . $exception
+				);
+				
+				# Print Error and Return.
+				berror($1, "spawnu: " . $exception);
+				return;
+			}
+		}
+
+	#	ALIAS REGISTER: SPAWNU
+	beacon_command_register(
+		"spawnu",
+		"\c6[!] DISABLED: Due to OPSEC Concerns\o",
+		"Synopsis: spawnu:\t[!] DISABLED: Due to OPSEC Concerns."
+	);
+}
+
+else if (%opsec_status['spawnu'] eq "ENABLED") {
+	# Log Tasking to Event Log.
+	println("[!] Operator " . mynick() . " ENABLED OPSEC Command: spawnu\o");
+	
+	alias_clear("spawnu");
+	
+	#	ALIAS REGISTER: BLOCKDLLS
+	beacon_command_register(
+		"spawnu",
+		"Spawn a session under another process",
+		"Use: spawnu [pid] [listener]\n\nAttempt to spawn a session with the specified PID as its parent. This session\nwill run with the identity of the specified PID."
+	);
+}

@@ -1,0 +1,63 @@
+#	ALIAS:	POWERPICK
+
+global('%opsec_status');
+
+if (%opsec_status['powerpick'] eq "DISABLED") {
+
+	alias powerpick {
+			# Check for Number of Arguements
+			if (size(@_) > 1) {
+				berror($1, "powerpick: Too many arguments (NOTE: Command is DISABLED!)");
+				beacon_command_detail("powerpick");
+				return;
+			}
+
+			# Task
+			try {
+				# Beginning Task
+				berror($1, "powerpick: DISABLED due to OPSEC Concerns.");
+				
+				# Log Tasking to Event Log.
+				elog("\c4[!] Operator '" . mynick() . "' attempted to run 'powerpick' on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")\o");
+				
+				# Print Information to Script Console.
+				println(
+					"\nPRINTED INFORMATION: POWERPICK => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+					. "\n\t[!] Operator '" . mynick() . "' Attempted to Run 'powerpick', which is DISABLED: Due to OPSEC Concerns."
+				);
+			}
+			catch $exception {
+				
+				#Print Error to Script Console.
+				println(
+					"\nERROR INFORMATION: POWERPICK => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+					. "\powerpick: " . $exception
+				);
+				
+				# Print Error and Return.
+				berror($1, "powerpick: " . $exception);
+				return;
+			}
+		}
+
+	#	ALIAS REGISTER: POWERPICK
+	beacon_command_register(
+		"powerpick",
+		"\c6[!] DISABLED: Due to OPSEC Concerns\o",
+		"Synopsis: powerpick:\t[!] DISABLED: Due to OPSEC Concerns."
+	);
+}
+
+else if (%opsec_status['powerpick'] eq "ENABLED") {
+	# Log Tasking to Event Log.
+	println("[!] Operator " . mynick() . " ENABLED OPSEC Command: powerpick\o");
+	
+	alias_clear("powerpick");
+	
+	#	ALIAS REGISTER: BLOCKDLLS
+	beacon_command_register(
+		"powerpick",
+		"",
+		""
+	);
+}

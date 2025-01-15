@@ -1,0 +1,66 @@
+#	ALIAS:	IPCONFIG
+
+alias("assembly ipconfig", {
+		local('@icb');
+		# Check for Number of Arguements
+		if (size(@_) > 2) {
+			berror($1, "ipconfig: Too many arguments");
+			beacon_command_detail("ipconfig");
+			return;
+		}
+		
+		# Task
+		try {
+			
+			# Print Information to Beacon Console.
+			binput($1, "[ Printing Host Network Information ]");
+			
+			# Beginning Task
+			btask($1, "Printing Host Network Information (T000)", "T000");
+			
+			# Log Tasking to Event Log.
+			elog("\cC[+] Printing Ipconfig Information on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")");
+			
+			# Print Information to Script Console.
+			println(
+				"\nPRINTED INFORMATION: IPCONFIG => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\nPrinting Host Network Information."
+			);
+			
+			# Print Results to Beacon Console.
+			if (-is64 $1) {
+				if ("x86" !isin beacon_info($1, "barch")) {
+					bexecute_assembly($1, script_resource("_assemblies/ipconfig/ipconfig_x64_4.0.30319.exe"), $null);
+				}
+				else {
+					bexecute_assembly($1, script_resource("_assemblies/ipconfig/ipconfig_x86_4.0.30319.exe"), $null);
+				}
+				
+			}
+			else {
+				bexecute_assembly($1, script_resource("_assemblies/ipconfig/ipconfig_x86_4.0.30319.exe"), $null);
+			}
+			# Task Complete
+			
+		}
+		catch $exception {
+			
+			#Print Error to Script Console.
+			println(
+				"\nERROR INFORMATION: IPCONFIG => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\nIPCONFIG: " . $exception
+			);
+			
+			# Print Error and Return.
+			berror($1, "IPCONFIG: " . $exception);
+			return;
+		}
+	}
+);
+
+#	ALIAS REGISTER: IPCONFIG
+beacon_command_register(
+	"assembly ipconfig",
+	"\cD" . "[*] .NET \(4.0\): Prints Host Network Information" . "\o",
+	"Synopsis: ipconfig\n\Gathers Network Information for all Configured Interfaces."
+ );

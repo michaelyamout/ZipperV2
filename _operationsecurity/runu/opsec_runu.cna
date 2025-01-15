@@ -1,0 +1,63 @@
+#	ALIAS:	RUNU
+
+global('%opsec_status');
+
+if (%opsec_status['runu'] eq "DISABLED") {
+
+	alias runu {
+			# Check for Number of Arguements
+			if (size(@_) > 1) {
+				berror($1, "runu: Too many arguments (NOTE: Command is DISABLED!)");
+				beacon_command_detail("runu");
+				return;
+			}
+
+			# Task
+			try {
+				# Beginning Task
+				berror($1, "runu: DISABLED due to OPSEC Concerns.");
+				
+				# Log Tasking to Event Log.
+				elog("\c4[!] Operator '" . mynick() . "' attempted to run 'runu' on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")\o");
+				
+				# Print Information to Script Console.
+				println(
+					"\nPRINTED INFORMATION: RUNU => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+					. "\n\t[!] Operator '" . mynick() . "' Attempted to Run 'runu', which is DISABLED: Due to OPSEC Concerns."
+				);
+			}
+			catch $exception {
+				
+				#Print Error to Script Console.
+				println(
+					"\nERROR INFORMATION: RUNU => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+					. "\runu: " . $exception
+				);
+				
+				# Print Error and Return.
+				berror($1, "runu: " . $exception);
+				return;
+			}
+		}
+
+	#	ALIAS REGISTER: RUNU
+	beacon_command_register(
+		"runu",
+		"\c6[!] DISABLED: Due to OPSEC Concerns\o",
+		"Synopsis: runu:\t[!] DISABLED: Due to OPSEC Concerns."
+	);
+}
+
+else if (%opsec_status['runu'] eq "ENABLED") {
+	# Log Tasking to Event Log.
+	println("[!] Operator " . mynick() . " ENABLED OPSEC Command: runu\o");
+	
+	alias_clear("runu");
+	
+	#	ALIAS REGISTER: BLOCKDLLS
+	beacon_command_register(
+		"runu",
+		"Execute a program under another PID",
+		"Use: runu [pid] [command] [arguments]\n\nAttempt to execute a program with the specified PID as its parent. This program\nwill run with the identity of the specified PID."
+	);
+}

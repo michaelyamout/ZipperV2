@@ -1,0 +1,66 @@
+#	ALIAS:	ENV
+
+alias("assembly env", {
+
+		# Check for Number of Arguements
+		if (size(@_) > 2) {
+			berror($1, "env: Too many arguments");
+			beacon_command_detail("env");
+			return;
+		}
+		
+		# Task
+		try {
+			
+			# Print Information to Beacon Console.
+			binput($1, "[ Gathering ENV Information ]");
+			
+			# Beginning Task
+			btask($1, "Gathering ENV Information (MITRE ATTACK ID)", "T000");
+			
+			# Log Tasking to Event Log.
+			elog("\cC[+] Gathering ENV Information on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")");
+			
+			# Print Information to Script Console.
+			println(
+				"\nPRINTED INFORMATION: ENV => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\nGathering ENV Information."
+			);
+			
+			# Print Results to Beacon Console.
+			if (-is64 $1) {
+				if ("x86" !isin beacon_info($1, "barch")) {
+					bexecute_assembly($1, script_resource("_assemblies/env/env_x64_2.0.50727.exe"), $null);
+				}
+				else {
+					bexecute_assembly($1, script_resource("_assemblies/env/env_x86_2.0.50727.exe"), $null);
+				}
+				
+			}
+			else {
+				bexecute_assembly($1, script_resource("_assemblies/env/env_x86_2.0.50727.exe"), $null);
+			}
+			# Task Complete
+			
+		}
+		catch $exception {
+			
+			#Print Error to Script Console.
+			println(
+				"\nERROR INFORMATION: ENV => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\nENV: " . $exception
+			);
+			
+			# Print Error and Return.
+			berror($1, "ENV: " . $exception);
+			return;
+		}
+	}
+);
+
+#	ALIAS REGISTER: ENV
+beacon_command_register(
+	"assembly env",
+	"\cD" . "[*] .NET \(2.0\): Gathers ENV information" . "\o",
+	"Synopsis: env\n\nGathers ENV information."
+ );

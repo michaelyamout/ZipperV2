@@ -1,0 +1,57 @@
+#	ALIAS:	PIPES
+
+alias("pipes", {
+
+		# Check for Number of Arguements
+		if (size(@_) > 1) {
+			berror($1, "pipes: To many arguments");
+			beacon_command_detail("pipes");
+			return;
+		}
+		
+		# Task
+		try {
+			
+			# Print Information to Beacon Console.
+			binput($1, "[ Printing Pipes to Console ]");
+			
+			# Beginning Task
+			btask($1, "Enumerating Pipes (MITRE ATTACK ID)", "T000");
+			
+			# Log Tasking to Event Log. (Skipping).
+			#elog("\cC[+] Enumerating Pipes on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")");
+			
+			# Print Information to Script Console.
+			println(
+				"\nPRINTED INFORMATION: PIPES => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\n\tEnumerating Pipes."
+			);
+			
+			# Print Results to Beacon Console. (Skipping).
+			# Set Note of Beacon (Skipping).
+			# Highlight Beacon to <>
+			
+			# Task to Complete
+			bls($1,"\\\\.\\pipe\\");
+		}
+		catch $exception {
+			
+			#Print Error to Script Console.
+			println(
+				"\nERROR INFORMATION: PIPES => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\npipes: " . $exception
+			);
+			
+			# Print Error and Return.
+			berror($1, "pipes: " . $exception);
+			return;
+		}
+	}
+);
+
+#	ALIAS REGISTER: TEMPLATE
+beacon_command_register(
+	"pipes",
+	"\c2[*] ALIAS: Lists pipes on the current system\o",
+	"Synopsis: pipes\n\nLists pipes on the current system."
+ );

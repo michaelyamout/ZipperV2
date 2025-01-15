@@ -1,0 +1,71 @@
+#	ALIAS:	CHECKSIG
+# $1 => Beacon ID
+# $2 => File
+
+alias("assembly checksig", {
+
+		println(@_);
+
+		# Check for Number of Arguements
+		if (size(@_) > 3) {
+			berror($1, "checksig: Too many arguments");
+			beacon_command_detail("assembly checksig");
+			return;
+		}
+		
+		# Task
+		try {
+			
+			# Print Information to Beacon Console.
+			binput($1, "[ Checking for Signature on Supplied File ]");
+			
+			# Beginning Task
+			btask($1, "Checking for Signature on Supplied File \(T000\)", "T000");
+			
+			# Log Tasking to Event Log.
+			elog("\cC[+] Checking for Signature on Supplied File \($3\) on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")");
+			
+			# Print Information to Script Console.
+			println(
+				"\nPRINTED INFORMATION: CHECKSIG => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\nChecking for Signature on Supplied File. \($3\)"
+			);
+			
+			# Print Results to Beacon Console.
+
+			if (-is64 $1) {
+				if ("x86" !isin beacon_info($1, "barch")) {
+					bexecute_assembly($1, script_resource("_assemblies/checksig/checksig_x64_4.0.30319.exe"), "\" $+ $3 $+ \"");
+				}
+				else if ("x86" isin beacon_info($1, "barch")) {
+					bexecute_assembly($1, script_resource("_assemblies/checksig/checksig_x86_4.0.30319.exe"), "\" $+ $3 $+ \"");
+				}
+			}
+			else {
+				bexecute_assembly($1, script_resource("_assemblies/checksig/checksig_x86_4.0.30319.exe"), "\" $+ $3 $+ \"");
+			}
+
+			# Task Complete
+			
+		}
+		catch $exception {
+			
+			#Print Error to Script Console.
+			println(
+				"\nERROR INFORMATION: CHECKSIG => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\nCHECKSIG: " . $exception
+			);
+			
+			# Print Error and Return.
+			berror($1, "CHECKSIG: " . $exception);
+			return;
+		}
+	}
+);
+
+#	ALIAS REGISTER: CHECKSIG
+beacon_command_register(
+	"assembly checksig",
+	"\cD" . "[*] .NET \(4.0\): Checks for Signatrue on File/Binary (x64/x86)" . "\o",
+	"Synopsis: chksig <Path/to/File>\n\nChecks if a File/Binary is signed and returns who signed it\nNote: You may have to add qoutes if there are spaces."
+ );

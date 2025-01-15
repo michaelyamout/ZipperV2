@@ -1,0 +1,63 @@
+#	ALIAS:	INJECT
+
+global('%opsec_status');
+
+if (%opsec_status['inject'] eq "DISABLED") {
+
+	alias inject {
+			# Check for Number of Arguements
+			if (size(@_) > 1) {
+				berror($1, "inject: Too many arguments (NOTE: Command is DISABLED!)");
+				beacon_command_detail("inject");
+				return;
+			}
+
+			# Task
+			try {
+				# Beginning Task
+				berror($1, "inject: DISABLED due to OPSEC Concerns.");
+				
+				# Log Tasking to Event Log.
+				elog("\c4[!] Operator '" . mynick() . "' attempted to run 'inject' on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")\o");
+				
+				# Print Information to Script Console.
+				println(
+					"\nPRINTED INFORMATION: INJECT => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+					. "\n\t[!] Operator '" . mynick() . "' Attempted to Run 'inject', which is DISABLED: Due to OPSEC Concerns."
+				);
+			}
+			catch $exception {
+				
+				#Print Error to Script Console.
+				println(
+					"\nERROR INFORMATION: INJECT => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+					. "\inject: " . $exception
+				);
+				
+				# Print Error and Return.
+				berror($1, "inject: " . $exception);
+				return;
+			}
+		}
+
+	#	ALIAS REGISTER: INJECT
+	beacon_command_register(
+		"inject",
+		"\c6[!] DISABLED: Due to OPSEC Concerns\o",
+		"Synopsis: inject:\t[!] DISABLED: Due to OPSEC Concerns."
+	);
+}
+
+else if (%opsec_status['inject'] eq "ENABLED") {
+	# Log Tasking to Event Log.
+	println("[!] Operator " . mynick() . " ENABLED OPSEC Command: inject\o");
+	
+	alias_clear("inject");
+	
+	#	ALIAS REGISTER: BLOCKDLLS
+	beacon_command_register(
+		"inject",
+		"Spawn a session in a specific process",
+		"Use: inject [pid] <x86|x64> [listener]\n\nOpen the process and inject shellcode for the listener"
+	);
+}

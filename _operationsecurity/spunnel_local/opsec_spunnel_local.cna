@@ -1,0 +1,63 @@
+#	ALIAS:	SPUNNEL_LOCAL
+
+global('%opsec_status');
+
+if (%opsec_status['spunnel_local'] eq "DISABLED") {
+
+	alias spunnel_local {
+			# Check for Number of Arguements
+			if (size(@_) > 1) {
+				berror($1, "spunnel_local: Too many arguments (NOTE: Command is DISABLED!)");
+				beacon_command_detail("spunnel_local");
+				return;
+			}
+
+			# Task
+			try {
+				# Beginning Task
+				berror($1, "spunnel_local: DISABLED due to OPSEC Concerns.");
+				
+				# Log Tasking to Event Log.
+				elog("\c4[!] Operator '" . mynick() . "' attempted to run 'spunnel_local' on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")\o");
+				
+				# Print Information to Script Console.
+				println(
+					"\nPRINTED INFORMATION: SPUNNEL_LOCAL => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+					. "\n\t[!] Operator '" . mynick() . "' Attempted to Run 'spunnel_local', which is DISABLED: Due to OPSEC Concerns."
+				);
+			}
+			catch $exception {
+				
+				#Print Error to Script Console.
+				println(
+					"\nERROR INFORMATION: SPUNNEL_LOCAL => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+					. "\spunnel_local: " . $exception
+				);
+				
+				# Print Error and Return.
+				berror($1, "spunnel_local: " . $exception);
+				return;
+			}
+		}
+
+	#	ALIAS REGISTER: SPUNNEL_LOCAL
+	beacon_command_register(
+		"spunnel_local",
+		"\c6[!] DISABLED: Due to OPSEC Concerns\o",
+		"Synopsis: spunnel_local:\t[!] DISABLED: Due to OPSEC Concerns."
+	);
+}
+
+else if (%opsec_status['spunnel_local'] eq "ENABLED") {
+	# Log Tasking to Event Log.
+	println("[!] Operator " . mynick() . " ENABLED OPSEC Command: spunnel_local\o");
+	
+	alias_clear("spunnel_local");
+	
+	#	ALIAS REGISTER: BLOCKDLLS
+	beacon_command_register(
+		"spunnel_local",
+		"Spawn and tunnel an agent via Cobalt Strike client rportfwd",
+		"Use: spunnel_local [x86|x64] [host] [port] [/path/to/agent.bin]\n\nThis is the spawn and tunnel command. Spawn an agent and create a reverse\nport forward, tunnelled through your Cobalt Strike client, to its controller."
+	);
+}

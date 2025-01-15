@@ -1,0 +1,63 @@
+#	ALIAS:	SPAWNAS
+
+global('%opsec_status');
+
+if (%opsec_status['spawnas'] eq "DISABLED") {
+
+	alias spawnas {
+			# Check for Number of Arguements
+			if (size(@_) > 1) {
+				berror($1, "spawnas: Too many arguments (NOTE: Command is DISABLED!)");
+				beacon_command_detail("spawnas");
+				return;
+			}
+
+			# Task
+			try {
+				# Beginning Task
+				berror($1, "spawnas: DISABLED due to OPSEC Concerns.");
+				
+				# Log Tasking to Event Log.
+				elog("\c4[!] Operator '" . mynick() . "' attempted to run 'spawnas' on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")\o");
+				
+				# Print Information to Script Console.
+				println(
+					"\nPRINTED INFORMATION: SPAWNAS => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+					. "\n\t[!] Operator '" . mynick() . "' Attempted to Run 'spawnas', which is DISABLED: Due to OPSEC Concerns."
+				);
+			}
+			catch $exception {
+				
+				#Print Error to Script Console.
+				println(
+					"\nERROR INFORMATION: SPAWNAS => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+					. "\spawnas: " . $exception
+				);
+				
+				# Print Error and Return.
+				berror($1, "spawnas: " . $exception);
+				return;
+			}
+		}
+
+	#	ALIAS REGISTER: SPAWNAS
+	beacon_command_register(
+		"spawnas",
+		"\c6[!] DISABLED: Due to OPSEC Concerns\o",
+		"Synopsis: spawnas:\t[!] DISABLED: Due to OPSEC Concerns."
+	);
+}
+
+else if (%opsec_status['spawnas'] eq "ENABLED") {
+	# Log Tasking to Event Log.
+	println("[!] Operator " . mynick() . " ENABLED OPSEC Command: spawnas\o");
+	
+	alias_clear("spawnas");
+	
+	#	ALIAS REGISTER: BLOCKDLLS
+	beacon_command_register(
+		"spawnas",
+		"Spawn a session as another user",
+		"Use: spawnas [DOMAIN\\user] [password] [listener]\n\nAttempt to spawn a payload as another user. If you don't specify DOMAIN,\nBeacon will try to authenticate as a local user.\n\nThis command will usually fail if you're in a SYSTEM context. Use make_token\nto create a token to pass the desired credentials instead."
+	);
+}

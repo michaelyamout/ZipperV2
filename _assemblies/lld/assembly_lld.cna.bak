@@ -1,0 +1,80 @@
+#	ALIAS:	LLD
+# $1 => Beacon ID
+# $2 => Remote System (Defaults to Localhost)
+alias("assembly lld", {
+
+		# Check for Number of Arguements
+		if (size(@_) > 3) {
+			berror($1, "lld: Too many arguments");
+			beacon_command_detail("lld");
+			return;
+		}
+		
+		# Task
+		try {
+			
+			# Print Information to Beacon Console.
+			binput($1, "[ Listing Logical Drive Information ]");
+			
+			# Beginning Task
+			btask($1, "Listing Logical Drives (T000)", "T000");
+			
+			# Log Tasking to Event Log.
+			if ($3 !eq "" || $3 !eq $null) {
+				elog("\cC[+] Listing Logical Drives for \($3\) on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")");
+			}
+			else {
+				elog("\cC[+] Listing Logical Drives for \(localhost\) on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")");
+			}
+			
+			# Print Information to Script Console.
+			if ($3 !eq "" || $3 !eq $null) {
+				println(
+					"\nPRINTED INFORMATION: LLD => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+					. "\nListing Logical Drive Information: Target => \($3\)"
+				);
+			}
+			else {
+				println(
+					"\nPRINTED INFORMATION: LLD => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+					. "\nListing Logical Drive Information: Target => \(localhost\)"
+				);
+			}
+			
+			# Print Results to Beacon Console.
+			if (-is64 $1) {
+				if ("x86" !isin beacon_info($1, "barch")) {
+					bexecute_assembly($1, script_resource("_assemblies/lld/lld_x64_3.5.exe"), $3);
+				}
+				else {
+					bexecute_assembly($1, script_resource("_assemblies/lld/lld_x86_3.5.exe"), $3);
+				}
+				
+			}
+			else {
+				bexecute_assembly($1, script_resource("_assemblies/lld/lld_x86_3.5.exe"), $3);
+			}
+			# Task Complete
+			
+		}
+		catch $exception {
+			
+			#Print Error to Script Console.
+			println(
+				"\nERROR INFORMATION: LLD => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\nLLD: " . $exception
+			);
+			
+			# Print Error and Return.
+			berror($1, "LLD: " . $exception);
+			return;
+		}
+	}
+);
+
+#	ALIAS REGISTER: LLD
+beacon_command_register(
+	"assembly lld",
+	"\cD" . "[*] .NET \(3.5\): Lists Logical Drive Information" . "\o",
+	"Synopsis: lld [system]\n\Lists Logical Drive Information on local or remote host.\n\tDefaults to Local system.\n\tProvide Remote system to list logical drives on Remote Target"
+ );

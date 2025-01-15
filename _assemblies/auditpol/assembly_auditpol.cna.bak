@@ -1,0 +1,66 @@
+#	ALIAS:	AUDITPOL
+
+alias("assembly auditpol", {
+
+		# Check for Number of Arguements
+		if (size(@_) > 2) {
+			berror($1, "auditpol: Too many arguments");
+			beacon_command_detail("auditpol");
+			return;
+		}
+		
+		# Task
+		try {
+			
+			# Print Information to Beacon Console.
+			binput($1, "[ Collecting Audit Policy Information ]");
+			
+			# Beginning Task
+			btask($1, "Collecting Audit Policy Information (MITRE ATTACK ID)", "T000");
+			
+			# Log Tasking to Event Log.
+			elog("\cC[+] Collecting Audit Policy Information on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")");
+			
+			# Print Information to Script Console.
+			println(
+				"\nPRINTED INFORMATION: AUDITPOL => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\nCollecting Audit Policy Information."
+			);
+			
+			# Print Results to Beacon Console.
+			if (-is64 $1) {
+				if ("x86" !isin beacon_info($1, "barch")) {
+					bexecute_assembly($1, script_resource("_assemblies/auditpol/auditpol_x64_2.0.50727.exe"), $null);
+				}
+				else {
+					bexecute_assembly($1, script_resource("_assemblies/auditpol/auditpol_x86_2.0.50727.exe"), $null);
+				}
+				
+			}
+			else {
+				bexecute_assembly($1, script_resource("_assemblies/auditpol/auditpol_x86_2.0.50727.exe"), $null);
+			}
+			# Task Complete
+			
+		}
+		catch $exception {
+			
+			#Print Error to Script Console.
+			println(
+				"\nERROR INFORMATION: AUDITPOL => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\nAUDITPOL: " . $exception
+			);
+			
+			# Print Error and Return.
+			berror($1, "AUDITPOL: " . $exception);
+			return;
+		}
+	}
+);
+
+#	ALIAS REGISTER: AUDITPOL
+beacon_command_register(
+	"assembly auditpol",
+	"\cD" . "[*] .NET \(2.0\): Collects audit policy information" . "\o",
+	"Synopsis: auditpol\n\nCollects audit policy information."
+ );

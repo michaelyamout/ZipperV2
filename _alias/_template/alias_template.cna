@@ -1,0 +1,61 @@
+#	ALIAS:	TEMPLATE
+
+alias("template", {
+		local('@icb');
+		# Check for Number of Arguements
+		if (size(@_) > 1) {
+			berror($1, "template: Too many arguments");
+			beacon_command_detail("template");
+			return;
+		}
+		
+		# Task
+		try {
+			
+			# Print Information to Beacon Console.
+			binput($1, "[ TEMPLATE ]");
+			
+			# Beginning Task
+			btask($1, "Template Task (MITRE ATTACK ID)", "T000");
+			
+			# Log Tasking to Event Log.
+			elog("\cC[+] Template Task on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")");
+			
+			# Print Information to Script Console.
+			println(
+				"\nPRINTED INFORMATION: TEMPLATE => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\nTemplate Information."
+			);
+			
+			# Print Results to Beacon Console.
+			
+			# Set Note of Beacon
+			
+			# Highlight Beacon to <>
+			push(@icb, beacon_data($1));
+			highlight("beacons", @icb, "good");
+			
+			# Task Complete
+			
+		}
+		catch $exception {
+			
+			#Print Error to Script Console.
+			println(
+				"\nERROR INFORMATION: TEMPLATE => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\nTEMPLATE: " . $exception
+			);
+			
+			# Print Error and Return.
+			berror($1, "TEMPLATE: " . $exception);
+			return;
+		}
+	}
+);
+
+#	ALIAS REGISTER: TEMPLATE
+beacon_command_register(
+	"template",
+	"[*] ALIAS: Template Short Desc",
+	"Synopsis: c\n\nTemplate Long Desc."
+ );

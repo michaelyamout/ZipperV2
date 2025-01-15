@@ -1,0 +1,34 @@
+sub get_tw_explorer {
+
+	global('@expid @twtemp @twgrabbed');
+	bps($1, lambda({
+		foreach $entry (split("\n", $2)) {
+			($un, $null, $up, $null, $us) = split("\t", $entry);
+			if ("explorer" isin $un) {
+				push(@twtemp, %(twpid => int($up), twuser => $us));
+			}
+		}
+		foreach $twentry (@twtemp) {
+			if (iff($twentry['twuser'] in @twgrabbed, false, true)) {
+				push(@twgrabbed, $twentry['twuser'] );
+				push(@expid, int($twentry['twpid']) );
+			}
+		}
+
+		[$cbf: $1, @expid];
+		clear(@expid);
+		clear(@twtemp);
+	}, $cbf => $2));
+}
+
+sub tokenwatch {
+	btoken_store_steal($1, $2, 0);
+}
+
+on heartbeat_10s {
+	
+	foreach $temp (@twarray){
+		get_tw_explorer($temp['bid'], {tokenwatch($1, $2)});
+	}
+
+}

